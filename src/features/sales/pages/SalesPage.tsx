@@ -632,25 +632,25 @@ export const SalesPage: React.FC = () => {
                       <td className="py-3 px-3 font-mono">
                         {Number(sale.discount) > 0 ? (
                           <span className="text-amber-600 dark:text-amber-400 font-bold">
-                            -{Number(sale.discount).toFixed(2)}
+                            -{Number(sale.discount).toLocaleString('ar-EG', { minimumFractionDigits: 2 })}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </td>
                       <td className="py-3 px-3 font-mono font-black text-xs text-foreground">
-                        {Number(sale.total_amount).toFixed(2)} ج.م
+                        {Number(sale.total_amount).toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
                       </td>
                       <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {paidAmount.toFixed(2)} ج.م
+                        {paidAmount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
                       </td>
                       <td className="py-3 px-3 font-mono">
                         {remainAmount > 0 ? (
                           <span className="font-black text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/40 inline-block">
-                            {remainAmount.toFixed(2)} ج.م
+                            {remainAmount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">0.00</span>
+                          <span className="text-muted-foreground">٠٫٠٠</span>
                         )}
                       </td>
                       <td className="py-3 px-3 text-center">

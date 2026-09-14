@@ -424,7 +424,7 @@ const PurchaseModalInner: React.FC<Omit<PurchaseModalProps, 'open'>> = ({
                           <div className="text-left sm:text-right">
                             <div className="text-[10px] text-muted-foreground leading-none">الإجمالي</div>
                             <div className="text-xs font-bold text-foreground font-mono whitespace-nowrap mt-1">
-                              {rowTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م
+                              {rowTotal.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
                             </div>
                           </div>
 
@@ -494,7 +494,7 @@ const PurchaseModalInner: React.FC<Omit<PurchaseModalProps, 'open'>> = ({
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-medium text-muted-foreground">إجمالي الفاتورة:</span>
                 <span className="text-2xl font-black text-primary font-mono tracking-tight">
-                  {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {totalAmount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}
                 </span>
                 <span className="text-sm font-bold text-primary">ج.م</span>
               </div>

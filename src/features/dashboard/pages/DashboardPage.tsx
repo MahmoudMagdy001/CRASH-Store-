@@ -8,6 +8,7 @@ import {
 } from '../api/dashboardApi'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { formatCurrency, formatNumber, formatPercent } from '@/lib/formatters'
 import {
   TrendingUp,
   TrendingDown,
@@ -78,7 +79,7 @@ export const DashboardPage: React.FC = () => {
       : undefined
 
   const profitMargin =
-    currentSales > 0 ? ((currentNetProfit / currentSales) * 100).toFixed(1) : '0'
+    currentSales > 0 ? ((currentNetProfit / currentSales) * 100) : 0
 
   return (
     <div className="space-y-6">
@@ -169,7 +170,7 @@ export const DashboardPage: React.FC = () => {
               <Receipt className="h-3 w-3" />
               <span>
                 {currentInvoices !== undefined
-                  ? `${currentInvoices} فاتورة بيع مسجلة`
+                  ? `${formatNumber(currentInvoices)} فاتورة بيع مسجلة`
                   : 'إجمالي إيراد الفواتير'}
               </span>
             </p>
@@ -262,7 +263,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                هامش ربح: {profitMargin}%
+                هامش ربح: {formatPercent(profitMargin)}
               </span>
               <span className="text-[10px] text-muted-foreground">
                 (المبيعات − التكلفة − المصروفات)
@@ -439,10 +440,10 @@ export const DashboardPage: React.FC = () => {
 
                     <div className="text-left shrink-0">
                       <span className="font-black font-mono text-xs text-foreground block">
-                        {item.total_units_sold} قطعة
+                        {formatNumber(item.total_units_sold)} قطعة
                       </span>
                       <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                        ربح: {item.total_profit.toFixed(0)} ج.م
+                        ربح: {formatCurrency(item.total_profit, { decimals: 0 })}
                       </span>
                     </div>
                   </div>

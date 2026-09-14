@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import Barcode from 'react-barcode'
 import type { SaleWithDetails, SettingsRow } from '../types/pos.types'
+import { formatCurrency, formatNumber } from '@/lib/formatters'
 
 interface ReceiptPrintTemplateProps {
   sale: SaleWithDetails | null
@@ -149,13 +150,13 @@ export const ReceiptPrintTemplate = forwardRef<
                       </div>
                     </td>
                     <td className="py-1 text-center font-mono font-bold">
-                      {item.quantity}
+                      {formatNumber(item.quantity)}
                     </td>
                     <td className="py-1 text-left font-mono">
-                      {Number(item.unit_price).toFixed(2)}
+                      {formatCurrency(item.unit_price, { showCurrency: false })}
                     </td>
                     <td className="py-1 text-left font-mono font-bold">
-                      {lineTotal.toFixed(2)}
+                      {formatCurrency(lineTotal, { showCurrency: false })}
                     </td>
                   </tr>
                 )
@@ -168,20 +169,20 @@ export const ReceiptPrintTemplate = forwardRef<
         <div className="py-2 border-b border-dashed border-black/60 space-y-1.5 text-xs">
           <div className="flex justify-between items-center text-gray-700">
             <span>المجموع الفرعي:</span>
-            <span className="font-mono font-bold">{subtotal.toFixed(2)} ج.م</span>
+            <span className="font-mono font-bold">{formatCurrency(subtotal)}</span>
           </div>
 
           {discount > 0 && (
             <div className="flex justify-between items-center text-red-600 font-medium">
               <span>الخصم:</span>
-              <span className="font-mono font-bold">-{discount.toFixed(2)} ج.م</span>
+              <span className="font-mono font-bold">-{formatCurrency(discount)}</span>
             </div>
           )}
 
           <div className="flex justify-between items-center pt-1 border-t border-black text-sm font-black">
             <span>الصافي المطلوب:</span>
             <span className="font-mono text-base">
-              {grandTotal.toFixed(2)} ج.م
+              {formatCurrency(grandTotal)}
             </span>
           </div>
 
@@ -189,11 +190,11 @@ export const ReceiptPrintTemplate = forwardRef<
             <div className="pt-1.5 mt-1 border-t border-dashed border-black/60 space-y-1 font-bold">
               <div className="flex justify-between items-center text-xs">
                 <span>المدفوع مقدماً:</span>
-                <span className="font-mono">{Number(sale.amount_paid || 0).toFixed(2)} ج.م</span>
+                <span className="font-mono">{formatCurrency(sale.amount_paid || 0)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black border-t border-black pt-1">
                 <span>المتبقي عليه (دين):</span>
-                <span className="font-mono text-base">{Number(sale.remaining_amount || 0).toFixed(2)} ج.م</span>
+                <span className="font-mono text-base">{formatCurrency(sale.remaining_amount || 0)}</span>
               </div>
             </div>
           )}
@@ -201,7 +202,7 @@ export const ReceiptPrintTemplate = forwardRef<
           <div className="flex justify-between items-center text-[10px] text-gray-500 pt-0.5">
             <span>عدد الأصناف:</span>
             <span>
-              {items.length} صنف ({items.reduce((s, i) => s + i.quantity, 0)} قطعة)
+              {formatNumber(items.length)} صنف ({formatNumber(items.reduce((s, i) => s + i.quantity, 0))} قطعة)
             </span>
           </div>
         </div>

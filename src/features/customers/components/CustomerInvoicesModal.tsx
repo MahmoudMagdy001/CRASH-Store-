@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import type { CustomerSummary } from '../types/customer.types'
 import type { SaleWithDetails } from '@/features/pos/types/pos.types'
 import { FileText, Printer, Clock, CreditCard, Banknote } from 'lucide-react'
+import { formatCurrency } from '@/lib/formatters'
 
 interface CustomerInvoicesModalProps {
   open: boolean
@@ -36,10 +37,10 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
             </DialogTitle>
             <div className="flex items-center gap-3 text-xs">
               <span className="text-muted-foreground">
-                إجمالي المشتريات: <strong className="text-foreground">{customer.total_sales.toFixed(2)} ج.م</strong>
+                إجمالي المشتريات: <strong className="text-foreground">{formatCurrency(customer.total_sales)}</strong>
               </span>
               <span className="text-muted-foreground">
-                المتبقي (دين): <strong className="text-amber-600 dark:text-amber-400 font-mono">{customer.total_remaining.toFixed(2)} ج.م</strong>
+                المتبقي (دين): <strong className="text-amber-600 dark:text-amber-400 font-mono">{formatCurrency(customer.total_remaining)}</strong>
               </span>
             </div>
           </div>
@@ -122,18 +123,18 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                         {itemsCount}
                       </td>
                       <td className="py-3 px-3 font-mono font-black text-foreground">
-                        {Number(sale.total_amount).toFixed(2)} ج.م
+                        {formatCurrency(sale.total_amount)}
                       </td>
                       <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {paid.toFixed(2)} ج.م
+                        {formatCurrency(paid)}
                       </td>
                       <td className="py-3 px-3 font-mono">
                         {remain > 0 ? (
                           <span className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                            {remain.toFixed(2)} ج.م
+                            {formatCurrency(remain)}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">0.00</span>
+                          <span className="text-muted-foreground">٠٫٠٠ ج.م</span>
                         )}
                       </td>
                       <td className="py-3 px-3 text-center">

@@ -4,6 +4,7 @@ import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { PageLoader } from '@/components/ui/page-loader'
+import { ArabicDigitsProvider } from '@/components/layout/ArabicDigitsProvider'
 
 // Code-split feature pages for optimal bundle size and lazy loading
 const LoginPage = lazy(() =>
@@ -64,8 +65,9 @@ const PublicMenuPage = lazy(() =>
 export function App() {
   return (
     <AuthProvider>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+      <ArabicDigitsProvider>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/menu" element={<PublicMenuPage />} />
@@ -165,8 +167,9 @@ export function App() {
 
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      </Suspense>
+        </Routes>
+        </Suspense>
+      </ArabicDigitsProvider>
     </AuthProvider>
   )
 }

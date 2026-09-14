@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { ReceiptPrintTemplate } from './ReceiptPrintTemplate'
 import type { SaleWithDetails, SettingsRow } from '../types/pos.types'
 import { Printer, CheckCircle2, PlusCircle } from 'lucide-react'
+import { formatCurrency, formatNumber } from '@/lib/formatters'
 
 interface ReceiptModalProps {
   open: boolean
@@ -121,11 +122,11 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
                           {item.products?.name || 'صنف'}
                         </span>
                         <span className="text-[11px] text-muted-foreground">
-                          {item.quantity} × {Number(item.unit_price).toFixed(2)} ج.م
+                          {formatNumber(item.quantity)} × {formatCurrency(item.unit_price)}
                         </span>
                       </div>
                       <span className="font-mono font-bold text-foreground">
-                        {lineTotal.toFixed(2)} ج.م
+                        {formatCurrency(lineTotal)}
                       </span>
                     </div>
                   )
@@ -137,18 +138,18 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             <div className="pt-2 border-t space-y-1.5 text-xs bg-muted/30 p-3 rounded-lg">
               <div className="flex justify-between text-muted-foreground">
                 <span>المجموع الفرعي:</span>
-                <span className="font-mono font-medium">{subtotal.toFixed(2)} ج.م</span>
+                <span className="font-mono font-medium">{formatCurrency(subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-destructive">
                   <span>الخصم المطبق:</span>
-                  <span className="font-mono font-semibold">-{discount.toFixed(2)} ج.م</span>
+                  <span className="font-mono font-semibold">-{formatCurrency(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-1 border-t text-sm font-extrabold text-foreground">
                 <span>إجمالي الفاتورة:</span>
                 <span className="text-base text-primary font-mono font-black">
-                  {grandTotal.toFixed(2)} ج.م
+                  {formatCurrency(grandTotal)}
                 </span>
               </div>
 
@@ -156,11 +157,11 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
                 <div className="pt-2 border-t border-dashed border-amber-500/40 space-y-1 font-bold">
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>المدفوع مقدماً:</span>
-                    <span className="font-mono">{Number(sale.amount_paid || 0).toFixed(2)} ج.م</span>
+                    <span className="font-mono">{formatCurrency(sale.amount_paid || 0)}</span>
                   </div>
                   <div className="flex justify-between text-amber-600 dark:text-amber-400 text-sm">
                     <span>المتبقي عليه (دين):</span>
-                    <span className="font-mono font-black">{Number(sale.remaining_amount || 0).toFixed(2)} ج.م</span>
+                    <span className="font-mono font-black">{formatCurrency(sale.remaining_amount || 0)}</span>
                   </div>
                 </div>
               )}

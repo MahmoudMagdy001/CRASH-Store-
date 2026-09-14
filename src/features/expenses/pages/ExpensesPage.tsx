@@ -197,7 +197,7 @@ export const ExpensesPage: React.FC = () => {
             <div>
               <p className="text-xs font-medium text-muted-foreground">مصروفات اليوم</p>
               <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                {Number(summary?.todayTotal || 0).toLocaleString('en-US', {
+                {Number(summary?.todayTotal || 0).toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                 })}{' '}
                 <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
@@ -215,7 +215,7 @@ export const ExpensesPage: React.FC = () => {
             <div>
               <p className="text-xs font-medium text-muted-foreground">مصروفات الشهر الحالي</p>
               <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                {Number(summary?.monthTotal || 0).toLocaleString('en-US', {
+                {Number(summary?.monthTotal || 0).toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                 })}{' '}
                 <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
@@ -306,7 +306,7 @@ export const ExpensesPage: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 font-bold text-foreground">{expense.title}</td>
                     <td className="py-3.5 px-4 text-center font-mono font-bold text-destructive">
-                      {Number(expense.amount).toLocaleString('en-US', {
+                      {Number(expense.amount).toLocaleString('ar-EG', {
                         minimumFractionDigits: 2,
                       })}{' '}
                       <span className="text-xs text-muted-foreground font-sans">ج.م</span>
@@ -379,7 +379,7 @@ export const ExpensesPage: React.FC = () => {
             </DialogTitle>
             <DialogDescription>
               هل أنت متأكد من حذف مصروف &quot;{expenseToDelete?.title}&quot; بقيمة{' '}
-              {Number(expenseToDelete?.amount || 0).toLocaleString('en-US')} ج.م؟
+              {Number(expenseToDelete?.amount || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م؟
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

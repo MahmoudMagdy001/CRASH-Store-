@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 import type { CartItem } from '../types/pos.types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatCurrency } from '@/lib/formatters'
 import {
   Trash2,
   Plus,
@@ -360,7 +361,7 @@ export const PosCart: React.FC<PosCartProps> = ({
 
           {calculatedDiscount > 0 && (
             <span className="text-xs font-bold text-destructive shrink-0">
-              -{calculatedDiscount.toFixed(2)} ج.م
+              -{formatCurrency(calculatedDiscount)}
             </span>
           )}
         </div>
@@ -508,7 +509,7 @@ export const PosCart: React.FC<PosCartProps> = ({
                   المتبقي عليه (دين):
                 </span>
                 <div className="h-8 px-2.5 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-between font-mono font-black text-xs text-amber-900 dark:text-amber-200">
-                  <span>{creditRemaining.toFixed(2)}</span>
+                  <span>{formatCurrency(creditRemaining, { showCurrency: false })}</span>
                   <span className="text-[10px] font-bold">ج.م</span>
                 </div>
               </div>
@@ -540,7 +541,7 @@ export const PosCart: React.FC<PosCartProps> = ({
                   changeDue > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'
                 }`}
               >
-                {changeDue.toFixed(2)} ج.م
+                {formatCurrency(changeDue)}
               </span>
             </div>
           </div>
@@ -550,13 +551,13 @@ export const PosCart: React.FC<PosCartProps> = ({
         <div className="space-y-1 text-xs pt-1 border-t border-border/70">
           <div className="flex justify-between text-muted-foreground">
             <span>المجموع الفرعي:</span>
-            <span className="font-mono font-bold">{subtotal.toFixed(2)} ج.م</span>
+            <span className="font-mono font-bold">{formatCurrency(subtotal)}</span>
           </div>
 
           <div className="flex justify-between items-center text-sm font-black pt-1">
             <span className="text-foreground">الصافي المطلوب:</span>
             <span className="text-lg font-black font-mono text-primary">
-              {netTotal.toFixed(2)} ج.م
+              {formatCurrency(netTotal)}
             </span>
           </div>
         </div>
@@ -578,7 +579,7 @@ export const PosCart: React.FC<PosCartProps> = ({
               <Coins className="h-5 w-5" />
               إتمام عملية البيع
               <span className="font-mono mr-1 text-xs bg-emerald-700/50 px-2 py-0.5 rounded-full">
-                {netTotal.toFixed(2)} ج.م
+                {formatCurrency(netTotal)}
               </span>
             </>
           )}

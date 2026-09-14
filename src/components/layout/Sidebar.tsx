@@ -156,10 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
         })}
       </nav>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground">متجر كراش v1.0.0</p>
-      </div>
+
     </aside>
   )
 }

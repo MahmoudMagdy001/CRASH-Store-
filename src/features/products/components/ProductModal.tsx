@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
-import type { ProductWithCategory } from '../api/productsApi'
+import { generateBarcode, type ProductWithCategory } from '../api/productsApi'
 import type { Category } from '@/features/categories/api/categoriesApi'
 import { Sparkles } from 'lucide-react'
 
@@ -86,7 +86,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         reset({
           name: productToEdit.name,
           category_id: productToEdit.category_id || '',
-          barcode: productToEdit.barcode || '',
+          barcode: productToEdit.barcode || generateBarcode(),
           purchase_price: productToEdit.purchase_price,
           sale_price: productToEdit.sale_price,
           quantity: productToEdit.quantity,
@@ -97,7 +97,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         reset({
           name: '',
           category_id: categories.length > 0 ? categories[0].id : '',
-          barcode: '',
+          barcode: generateBarcode(),
           purchase_price: 0,
           sale_price: 0,
           quantity: 0,
@@ -114,9 +114,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   }
 
   const handleGenerateRandomBarcode = () => {
-    const timestamp = Date.now().toString().slice(-6)
-    const random = Math.floor(1000 + Math.random() * 9000).toString()
-    setValue('barcode', `200${timestamp}${random}`.slice(0, 12))
+    setValue('barcode', generateBarcode())
   }
 
   return (
@@ -168,21 +166,35 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {/* Barcode */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="barcode">الباركود</Label>
-                  <button
-                    type="button"
-                    onClick={handleGenerateRandomBarcode}
-                    className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <Sparkles className="h-3 w-3" />
-                    توليد تلقائي
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="barcode">الباركود</Label>
+                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold">
+                      تلقائي
+                    </span>
+                  </div>
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={handleGenerateRandomBarcode}
+                      className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                      title="توليد كود تلقائي جديد"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      توليد كود آخر
+                    </button>
+                  )}
                 </div>
                 <Input
                   id="barcode"
-                  placeholder="اتركه فارغاً للتوليد التلقائي"
+                  readOnly
+                  tabIndex={-1}
+                  placeholder="يتم التوليد تلقائياً"
                   dir="ltr"
-                  className="font-mono text-left"
+                  className="font-mono text-left bg-muted/60 text-muted-foreground cursor-not-allowed select-all font-semibold"
+                  title="يتم توليد الباركود تلقائياً ولا يمكن الكتابة فيه"
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Tab') e.preventDefault()
+                  }}
                   disabled={isLoading}
                   {...register('barcode')}
                 />

@@ -6,6 +6,7 @@ import {
   getCashiersList,
 } from '../api/reportsApi'
 import { getStoreSettings } from '@/features/pos/api/posApi'
+import { formatCurrency, formatNumber, formatPercent } from '@/lib/formatters'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -270,11 +271,11 @@ export const ReportsPage: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-black font-mono mt-2 text-foreground">
-            {totalSales.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+            {formatCurrency(totalSales)}
           </div>
           <p className="text-[11px] text-muted-foreground mt-1 flex items-center justify-between">
-            <span>الفواتير: <strong className="text-foreground">{invoicesCount}</strong></span>
-            <span>متوسط: <strong className="text-foreground">{averageInvoice.toFixed(0)} ج.م</strong></span>
+            <span>الفواتير: <strong className="text-foreground">{formatNumber(invoicesCount)}</strong></span>
+            <span>متوسط: <strong className="text-foreground">{formatCurrency(averageInvoice, { decimals: 0 })}</strong></span>
           </p>
         </Card>
 
@@ -287,10 +288,10 @@ export const ReportsPage: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-black font-mono mt-2 text-foreground">
-            {cogs.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+            {formatCurrency(cogs)}
           </div>
           <p className="text-[11px] text-muted-foreground mt-1">
-            مجمل الربح التجاري: <strong>{grossProfit.toFixed(2)} ج.م</strong>
+            مجمل الربح التجاري: <strong>{formatCurrency(grossProfit)}</strong>
           </p>
         </Card>
 
@@ -303,10 +304,10 @@ export const ReportsPage: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-black font-mono mt-2 text-rose-600 dark:text-rose-400">
-            {expenses.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+            {formatCurrency(expenses)}
           </div>
           <p className="text-[11px] text-muted-foreground mt-1">
-            خصومات ممنوحة: <strong>{discounts.toFixed(2)} ج.م</strong>
+            خصومات ممنوحة: <strong>{formatCurrency(discounts)}</strong>
           </p>
         </Card>
 
@@ -325,10 +326,10 @@ export const ReportsPage: React.FC = () => {
               netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'
             }`}
           >
-            {netProfit.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+            {formatCurrency(netProfit)}
           </div>
           <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-1 font-bold">
-            نسبة هامش الربح الصافي: {profitMargin}%
+            نسبة هامش الربح الصافي: {formatPercent(profitMargin)}
           </p>
         </Card>
       </div>
@@ -394,13 +395,13 @@ export const ReportsPage: React.FC = () => {
                           {c.invoices_count}
                         </td>
                         <td className="py-3 px-3 font-mono font-bold text-foreground">
-                          {Number(c.total_sales).toFixed(2)} ج.م
+                          {formatCurrency(c.total_sales)}
                         </td>
                         <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          {Number(c.total_paid).toFixed(2)} ج.م
+                          {formatCurrency(c.total_paid)}
                         </td>
                         <td className="py-3 px-3 font-mono font-bold text-amber-600 dark:text-amber-400">
-                          {Number(c.total_remaining).toFixed(2)} ج.م
+                          {formatCurrency(c.total_remaining)}
                         </td>
                       </tr>
                     ))}
@@ -465,16 +466,16 @@ export const ReportsPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-muted-foreground">{pm.count} فاتورة</span>
+                      <span className="text-muted-foreground">{formatNumber(pm.count)} فاتورة</span>
                       <span className="font-black text-foreground">
-                        {Number(pm.total).toFixed(2)} ج.م
+                        {formatCurrency(pm.total)}
                       </span>
                     </div>
 
                     {pm.payment_method === 'credit' && Number(pm.remaining) > 0 && (
                       <div className="pt-1 border-t border-border/60 flex items-center justify-between text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
                         <span>متبقي بالأجل:</span>
-                        <span className="font-mono">{Number(pm.remaining).toFixed(2)} ج.م</span>
+                        <span className="font-mono">{formatCurrency(pm.remaining)}</span>
                       </div>
                     )}
                   </div>
@@ -529,16 +530,16 @@ export const ReportsPage: React.FC = () => {
                           {cat.category_name}
                         </td>
                         <td className="py-3 px-3 text-center font-mono font-bold">
-                          {cat.total_units} قطعة
+                          {formatNumber(cat.total_units)} قطعة
                         </td>
                         <td className="py-3 px-3 font-mono font-bold text-foreground">
-                          {catRev.toFixed(2)} ج.م
+                          {formatCurrency(catRev)}
                         </td>
                         <td className="py-3 px-3 font-mono font-black text-emerald-600 dark:text-emerald-400">
-                          {catProfit.toFixed(2)} ج.م
+                          {formatCurrency(catProfit)}
                         </td>
                         <td className="py-3 px-3 text-center font-mono font-bold text-muted-foreground">
-                          {profitPct}%
+                          {formatPercent(profitPct, 0)}
                         </td>
                       </tr>
                     )
@@ -611,7 +612,7 @@ export const ReportsPage: React.FC = () => {
                     إجمالي مبيعات الفترة:
                   </td>
                   <td className="p-2.5 font-mono font-black text-slate-900 text-sm">
-                    {totalSales.toFixed(2)} ج.م ({invoicesCount} فاتورة)
+                    {formatCurrency(totalSales)} ({formatNumber(invoicesCount)} فاتورة)
                   </td>
                 </tr>
                 <tr>
@@ -619,7 +620,7 @@ export const ReportsPage: React.FC = () => {
                     تكلفة البضاعة المباعة (شراء):
                   </td>
                   <td className="p-2.5 font-mono font-bold text-slate-800">
-                    {cogs.toFixed(2)} ج.م
+                    {formatCurrency(cogs)}
                   </td>
                 </tr>
                 <tr className="bg-slate-50">
@@ -627,7 +628,7 @@ export const ReportsPage: React.FC = () => {
                     المصروفات التشغيلية والنثريات:
                   </td>
                   <td className="p-2.5 font-mono font-bold text-rose-700">
-                    {expenses.toFixed(2)} ج.م
+                    {formatCurrency(expenses)}
                   </td>
                 </tr>
                 <tr>
@@ -635,7 +636,7 @@ export const ReportsPage: React.FC = () => {
                     إجمالي الخصومات الممنوحة:
                   </td>
                   <td className="p-2.5 font-mono font-bold text-slate-800">
-                    {discounts.toFixed(2)} ج.م
+                    {formatCurrency(discounts)}
                   </td>
                 </tr>
                 <tr className="bg-emerald-50 border-t-2 border-emerald-600">
@@ -643,7 +644,7 @@ export const ReportsPage: React.FC = () => {
                     صافي الربح النهائي (المبيعات − التكلفة − المصروفات):
                   </td>
                   <td className="p-3 font-mono font-black text-emerald-800 text-base">
-                    {netProfit.toFixed(2)} ج.م (هامش ربح: {profitMargin}%)
+                    {formatCurrency(netProfit)} (هامش ربح: {formatPercent(profitMargin)})
                   </td>
                 </tr>
               </tbody>
@@ -675,16 +676,16 @@ export const ReportsPage: React.FC = () => {
                     >
                       <td className="p-2 border border-slate-200 font-bold">{c.cashier_name}</td>
                       <td className="p-2 border border-slate-200 text-center font-mono">
-                        {c.invoices_count}
+                        {formatNumber(c.invoices_count)}
                       </td>
                       <td className="p-2 border border-slate-200 font-mono font-bold">
-                        {Number(c.total_sales).toFixed(2)} ج.م
+                        {formatCurrency(c.total_sales)}
                       </td>
                       <td className="p-2 border border-slate-200 font-mono font-bold text-emerald-800">
-                        {Number(c.total_paid).toFixed(2)} ج.م
+                        {formatCurrency(c.total_paid)}
                       </td>
                       <td className="p-2 border border-slate-200 font-mono font-bold text-amber-800">
-                        {Number(c.total_remaining).toFixed(2)} ج.م
+                        {formatCurrency(c.total_remaining)}
                       </td>
                     </tr>
                   ))}

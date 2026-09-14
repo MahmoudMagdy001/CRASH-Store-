@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { payCustomerDebt } from '../api/customersApi'
 import type { CustomerSummary } from '../types/customer.types'
+import { formatCurrency } from '@/lib/formatters'
 import {
   Coins,
   Loader2,
@@ -218,7 +219,7 @@ export const PayDebtModal: React.FC<PayDebtModalProps> = ({
             <div className="flex justify-between items-center text-muted-foreground">
               <span>الدين قبل السداد:</span>
               <span className="font-mono font-bold text-foreground">
-                {debt.toFixed(2)} ج.م
+                {formatCurrency(debt)}
               </span>
             </div>
 
@@ -226,7 +227,7 @@ export const PayDebtModal: React.FC<PayDebtModalProps> = ({
               <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-bold">
                 <span>المبلغ المخصوم (المدفوع):</span>
                 <span className="font-mono">
-                  -{payValue.toFixed(2)} ج.م
+                  -{formatCurrency(payValue)}
                 </span>
               </div>
             )}
@@ -240,7 +241,7 @@ export const PayDebtModal: React.FC<PayDebtModalProps> = ({
                     : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
                 }`}
               >
-                {remainingAfterPay.toFixed(2)} ج.م
+                {formatCurrency(remainingAfterPay)}
               </span>
             </div>
 

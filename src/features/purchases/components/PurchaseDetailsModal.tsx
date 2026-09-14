@@ -91,7 +91,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
             <div className="space-y-1">
               <div className="text-xs text-muted-foreground">إجمالي الفاتورة</div>
               <div className="text-base font-bold text-primary font-mono">
-                {Number(purchase.total_amount).toLocaleString('en-US', {
+                {Number(purchase.total_amount).toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                 })}{' '}
                 ج.م
@@ -137,13 +137,13 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
                           {item.quantity}
                         </td>
                         <td className="py-3 px-4 text-center font-mono">
-                          {Number(item.unit_cost).toLocaleString('en-US', {
+                          {Number(item.unit_cost).toLocaleString('ar-EG', {
                             minimumFractionDigits: 2,
                           })}{' '}
                           ج.م
                         </td>
                         <td className="py-3 px-4 text-left font-bold text-foreground font-mono">
-                          {lineTotal.toLocaleString('en-US', {
+                          {lineTotal.toLocaleString('ar-EG', {
                             minimumFractionDigits: 2,
                           })}{' '}
                           ج.م
@@ -163,7 +163,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
                   </td>
                   <td className="py-3 px-4"></td>
                   <td className="py-3 px-4 text-left text-primary font-mono text-base font-black">
-                    {Number(purchase.total_amount).toLocaleString('en-US', {
+                    {Number(purchase.total_amount).toLocaleString('ar-EG', {
                       minimumFractionDigits: 2,
                     })}{' '}
                     ج.م

@@ -201,7 +201,7 @@ export const PurchasesPage: React.FC = () => {
             <div>
               <p className="text-xs font-medium text-muted-foreground">مشتريات وتوريدات اليوم</p>
               <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                {Number(summary?.todayTotal || 0).toLocaleString('en-US', {
+                {Number(summary?.todayTotal || 0).toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                 })}{' '}
                 <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
@@ -219,7 +219,7 @@ export const PurchasesPage: React.FC = () => {
             <div>
               <p className="text-xs font-medium text-muted-foreground">مشتريات الشهر الحالي</p>
               <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                {Number(summary?.monthTotal || 0).toLocaleString('en-US', {
+                {Number(summary?.monthTotal || 0).toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                 })}{' '}
                 <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
@@ -326,7 +326,7 @@ export const PurchasesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center font-mono font-bold text-foreground">
-                      {Number(purchase.total_amount).toLocaleString('en-US', {
+                      {Number(purchase.total_amount).toLocaleString('ar-EG', {
                         minimumFractionDigits: 2,
                       })}{' '}
                       <span className="text-xs text-muted-foreground font-sans">ج.م</span>
@@ -426,7 +426,7 @@ export const PurchasesPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="p-4 bg-muted/40 rounded-xl text-xs text-muted-foreground space-y-1">
-            <p>• قيمة الفاتورة: {Number(purchaseToDelete?.total_amount || 0).toLocaleString('en-US')} ج.م</p>
+            <p>• قيمة الفاتورة: {Number(purchaseToDelete?.total_amount || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م</p>
             <p>• سيتم حذف سجل الفاتورة وبنودها نهائياً.</p>
           </div>
           <DialogFooter>
