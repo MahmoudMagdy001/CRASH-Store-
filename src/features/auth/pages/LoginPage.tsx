@@ -31,6 +31,12 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState<boolean>(false)
 
+  const { data: storeInfo } = useQuery({
+    queryKey: ['public-store-info'],
+    queryFn: getPublicStoreInfo,
+    staleTime: 1000 * 60 * 5,
+  })
+
   const {
     register,
     handleSubmit,
@@ -72,12 +78,6 @@ export const LoginPage: React.FC = () => {
 
     // Role will update via AuthContext listener and redirect automatically
   }
-
-  const { data: storeInfo } = useQuery({
-    queryKey: ['public-store-info'],
-    queryFn: getPublicStoreInfo,
-    staleTime: 1000 * 60 * 5,
-  })
 
   const storeName = storeInfo?.store_name || 'متجر كراش (Crash Store)'
   const logoUrl = storeInfo?.logo_url || '/logo.webp'
