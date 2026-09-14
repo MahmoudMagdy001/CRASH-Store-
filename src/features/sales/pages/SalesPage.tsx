@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { getSalesList, getStoreSettings } from '@/features/pos/api/posApi'
-import type { SaleWithDetails, SettingsRow } from '@/features/pos/types/pos.types'
+import type { SaleWithDetails } from '@/features/pos/types/pos.types'
 import { ReceiptModal } from '@/features/pos/components/ReceiptModal'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -71,9 +72,6 @@ const isDateInPeriod = (
 }
 
 export const SalesPage: React.FC = () => {
-  const [sales, setSales] = useState<SaleWithDetails[]>([])
-  const [settings, setSettings] = useState<SettingsRow | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedMethod, setSelectedMethod] = useState<string>('all')
 
@@ -86,25 +84,22 @@ export const SalesPage: React.FC = () => {
   const [selectedSale, setSelectedSale] = useState<SaleWithDetails | null>(null)
   const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false)
 
-  const loadData = async () => {
-    setIsLoading(true)
-    try {
-      const [salesData, settingsData] = await Promise.all([
-        getSalesList(1000),
-        getStoreSettings(),
-      ])
-      setSales(salesData)
-      setSettings(settingsData)
-    } catch (err) {
-      console.error('Error loading sales ledger:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Queries
+  const {
+    data: sales = [],
+    isLoading: isLoadingSales,
+    refetch: refetchSales,
+  } = useQuery({
+    queryKey: ['sales-ledger'],
+    queryFn: () => getSalesList(1000),
+  })
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  const { data: settings = null, isLoading: isLoadingSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: getStoreSettings,
+  })
+
+  const isLoading = isLoadingSales || isLoadingSettings
 
   // Filter sales by selected date period
   const periodSales = useMemo(() => {
@@ -215,7 +210,7 @@ export const SalesPage: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={loadData}
+            onClick={() => refetchSales()}
             disabled={isLoading}
             className="gap-2"
           >

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -27,29 +27,32 @@ interface EditUserModalProps {
   isSaving: boolean
 }
 
-export const EditUserModal: React.FC<EditUserModalProps> = ({
-  open,
-  onOpenChange,
+type ManagedUser = AdminUserItem
+
+interface EditUserModalInnerProps {
+  user: ManagedUser
+  currentAdminId?: string
+  onSave: (data: {
+    userId: string
+    fullName: string
+    role: 'admin' | 'cashier'
+    isActive: boolean
+  }) => Promise<void>
+  isSaving?: boolean
+  onClose: () => void
+}
+
+const EditUserModalInner: React.FC<EditUserModalInnerProps> = ({
   user,
   currentAdminId,
   onSave,
   isSaving,
+  onClose,
 }) => {
-  const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<'admin' | 'cashier'>('cashier')
-  const [isActive, setIsActive] = useState(true)
+  const [fullName, setFullName] = useState(user.full_name || '')
+  const [role, setRole] = useState<'admin' | 'cashier'>(user.role)
+  const [isActive, setIsActive] = useState(user.is_active)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (user) {
-      setFullName(user.full_name || '')
-      setRole(user.role)
-      setIsActive(user.is_active)
-      setErrorMsg(null)
-    }
-  }, [user])
-
-  if (!user) return null
 
   const isSelf = currentAdminId === user.id
 
@@ -58,7 +61,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
     setErrorMsg(null)
 
     if (!fullName.trim()) {
-      setErrorMsg('يرجى إدخال اسم المستخدم.')
+      setErrorMsg('يرجى إدخال اسم المستخدم بالكامل.')
       return
     }
 
@@ -79,15 +82,15 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         role,
         isActive,
       })
-      onOpenChange(false)
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'فشل تحديث بيانات المستخدم')
+      onClose()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'فشل تحديث بيانات المستخدم'
+      setErrorMsg(message)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onClose={() => onOpenChange(false)} maxWidth="md">
+    <DialogContent onClose={onClose} maxWidth="md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <div className="flex items-center gap-2 text-primary">
@@ -206,7 +209,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={onClose}
               disabled={isSaving}
             >
               إلغاء
@@ -218,6 +221,26 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           </DialogFooter>
         </form>
       </DialogContent>
+  )
+}
+
+export const EditUserModal: React.FC<EditUserModalProps> = ({
+  open,
+  onOpenChange,
+  user,
+  ...props
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open && user && (
+        <EditUserModalInner
+          key={user.id}
+          user={user}
+          onClose={() => onOpenChange(false)}
+          {...props}
+        />
+      )}
     </Dialog>
   )
 }
+

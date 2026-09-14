@@ -1,26 +1,71 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
-import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { MainLayout } from '@/components/layout/MainLayout'
+import { PageLoader } from '@/components/ui/page-loader'
 
-// Feature Pages
-import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { PosPage } from '@/features/pos/pages/PosPage'
-import { ProductsPage } from '@/features/products/pages/ProductsPage'
-import { CategoriesPage } from '@/features/categories/pages/CategoriesPage'
-import { PurchasesPage } from '@/features/purchases/pages/PurchasesPage'
-import { SalesPage } from '@/features/sales/pages/SalesPage'
-import { CustomersPage } from '@/features/customers/pages/CustomersPage'
-import { ExpensesPage } from '@/features/expenses/pages/ExpensesPage'
-import { ReportsPage } from '@/features/reports/pages/ReportsPage'
-import { SettingsPage } from '@/features/settings/pages/SettingsPage'
-import { PublicMenuPage } from '@/features/menu/pages/PublicMenuPage'
+// Code-split feature pages for optimal bundle size and lazy loading
+const LoginPage = lazy(() =>
+  import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage }))
+)
+const DashboardPage = lazy(() =>
+  import('@/features/dashboard/pages/DashboardPage').then((m) => ({
+    default: m.DashboardPage,
+  }))
+)
+const PosPage = lazy(() =>
+  import('@/features/pos/pages/PosPage').then((m) => ({ default: m.PosPage }))
+)
+const ProductsPage = lazy(() =>
+  import('@/features/products/pages/ProductsPage').then((m) => ({
+    default: m.ProductsPage,
+  }))
+)
+const CategoriesPage = lazy(() =>
+  import('@/features/categories/pages/CategoriesPage').then((m) => ({
+    default: m.CategoriesPage,
+  }))
+)
+const PurchasesPage = lazy(() =>
+  import('@/features/purchases/pages/PurchasesPage').then((m) => ({
+    default: m.PurchasesPage,
+  }))
+)
+const SalesPage = lazy(() =>
+  import('@/features/sales/pages/SalesPage').then((m) => ({ default: m.SalesPage }))
+)
+const CustomersPage = lazy(() =>
+  import('@/features/customers/pages/CustomersPage').then((m) => ({
+    default: m.CustomersPage,
+  }))
+)
+const ExpensesPage = lazy(() =>
+  import('@/features/expenses/pages/ExpensesPage').then((m) => ({
+    default: m.ExpensesPage,
+  }))
+)
+const ReportsPage = lazy(() =>
+  import('@/features/reports/pages/ReportsPage').then((m) => ({
+    default: m.ReportsPage,
+  }))
+)
+const SettingsPage = lazy(() =>
+  import('@/features/settings/pages/SettingsPage').then((m) => ({
+    default: m.SettingsPage,
+  }))
+)
+const PublicMenuPage = lazy(() =>
+  import('@/features/menu/pages/PublicMenuPage').then((m) => ({
+    default: m.PublicMenuPage,
+  }))
+)
 
 export function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/menu" element={<PublicMenuPage />} />
@@ -121,6 +166,7 @@ export function App() {
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </AuthProvider>
   )
 }

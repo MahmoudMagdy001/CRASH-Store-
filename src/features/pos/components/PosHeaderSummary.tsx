@@ -1,7 +1,7 @@
 import React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { TrendingUp, Package, Receipt, Wallet, RefreshCw } from 'lucide-react'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import { useAuth } from '@/features/auth/context/useAuth'
 import { getPosDailySummary } from '../api/posApi'
 import { Button } from '@/components/ui/button'
 

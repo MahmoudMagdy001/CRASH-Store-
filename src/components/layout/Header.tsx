@@ -1,6 +1,6 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import { useAuth } from '@/features/auth/context/useAuth'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LogOut, User, Menu } from 'lucide-react'

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getPosProducts,
   getStoreSettings,
@@ -9,7 +9,6 @@ import {
 import type {
   PosProduct,
   CartItem,
-  SettingsRow,
   SaleWithDetails,
 } from '../types/pos.types'
 import { PosProductCard } from '../components/PosProductCard'
@@ -25,10 +24,18 @@ import {
 export const PosPage: React.FC = () => {
   const queryClient = useQueryClient()
 
-  // State
-  const [products, setProducts] = useState<PosProduct[]>([])
-  const [settings, setSettings] = useState<SettingsRow | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  // Queries
+  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['pos-products'],
+    queryFn: getPosProducts,
+  })
+
+  const { data: settings = null, isLoading: isLoadingSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: getStoreSettings,
+  })
+
+  const isLoading = isLoadingProducts || isLoadingSettings
   const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false)
 
   // Filtering & Search
@@ -46,35 +53,15 @@ export const PosPage: React.FC = () => {
   // Scanner input ref
   const barcodeInputRef = useRef<HTMLInputElement>(null)
 
-  // Initial load
-  const loadData = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const [prods, storeSet] = await Promise.all([
-        getPosProducts(),
-        getStoreSettings(),
-      ])
-      setProducts(prods)
-      setSettings(storeSet)
-    } catch (err) {
-      console.error('Failed to load POS data:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
   // Listen for refresh event triggered from PosHeaderSummary
   useEffect(() => {
     const handleRefresh = () => {
-      loadData()
+      queryClient.invalidateQueries({ queryKey: ['pos-products'] })
+      queryClient.invalidateQueries({ queryKey: ['store-settings'] })
     }
     window.addEventListener('pos-refresh', handleRefresh)
     return () => window.removeEventListener('pos-refresh', handleRefresh)
-  }, [loadData])
+  }, [queryClient])
 
   // Focus barcode input on mount and when receipt modal closes
   useEffect(() => {
@@ -264,8 +251,7 @@ export const PosPage: React.FC = () => {
       setIsReceiptOpen(true)
 
       // Refresh product quantities and update daily summary in header
-      const freshProds = await getPosProducts()
-      setProducts(freshProds)
+      queryClient.invalidateQueries({ queryKey: ['pos-products'] })
       queryClient.invalidateQueries({ queryKey: ['pos-daily-summary'] })
 
       // Reset cart

@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { getCustomersSummaryList } from '../api/customersApi'
 import type { CustomerSummary } from '../types/customer.types'
 import { PayDebtModal } from '../components/PayDebtModal'
 import { CustomerInvoicesModal } from '../components/CustomerInvoicesModal'
 import { ReceiptModal } from '@/features/pos/components/ReceiptModal'
 import { getStoreSettings } from '@/features/pos/api/posApi'
-import type { SaleWithDetails, SettingsRow } from '@/features/pos/types/pos.types'
+import type { SaleWithDetails } from '@/features/pos/types/pos.types'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,9 +23,22 @@ import {
 } from 'lucide-react'
 
 export const CustomersPage: React.FC = () => {
-  const [customers, setCustomers] = useState<CustomerSummary[]>([])
-  const [settings, setSettings] = useState<SettingsRow | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  // Queries
+  const {
+    data: customers = [],
+    isLoading: isLoadingCustomers,
+    refetch: refetchCustomers,
+  } = useQuery({
+    queryKey: ['customers-summary'],
+    queryFn: getCustomersSummaryList,
+  })
+
+  const { data: settings = null, isLoading: isLoadingSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: getStoreSettings,
+  })
+
+  const isLoading = isLoadingCustomers || isLoadingSettings
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [filterType, setFilterType] = useState<'all' | 'debtors' | 'settled'>('debtors')
 
@@ -40,25 +54,6 @@ export const CustomersPage: React.FC = () => {
   const [receiptSale, setReceiptSale] = useState<SaleWithDetails | null>(null)
   const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false)
 
-  const loadData = async () => {
-    setIsLoading(true)
-    try {
-      const [data, settingsData] = await Promise.all([
-        getCustomersSummaryList(),
-        getStoreSettings(),
-      ])
-      setCustomers(data)
-      setSettings(settingsData)
-    } catch (err) {
-      console.error('Error loading customers:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadData()
-  }, [])
 
   // KPI Calculations
   const stats = useMemo(() => {
@@ -130,7 +125,7 @@ export const CustomersPage: React.FC = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={loadData}
+          onClick={() => refetchCustomers()}
           disabled={isLoading}
           className="gap-2"
         >
@@ -389,7 +384,7 @@ export const CustomersPage: React.FC = () => {
         open={isPayOpen}
         onOpenChange={setIsPayOpen}
         customer={payingCustomer}
-        onSuccess={loadData}
+        onSuccess={() => refetchCustomers()}
       />
 
       {/* Invoices List Modal */}

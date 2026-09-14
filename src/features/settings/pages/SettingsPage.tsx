@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import { useAuth } from '@/features/auth/context/useAuth'
 import {
   getStoreSettings,
   updateStoreSettings,
@@ -69,16 +69,18 @@ export const SettingsPage: React.FC = () => {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (storeSettings) {
-      setStoreName(storeSettings.store_name || '')
-      setPhone(storeSettings.phone || '')
-      setAddress(storeSettings.address || '')
-      setCurrency(storeSettings.currency || 'EGP')
-      setLogoUrl(storeSettings.logo_url || '')
-      setFooterNote(storeSettings.invoice_footer_note || '')
-    }
-  }, [storeSettings])
+  const [prevSettingsId, setPrevSettingsId] = useState<string | null>(null)
+
+  // Adjust state during render when storeSettings loads/changes (React recommended pattern)
+  if (storeSettings && storeSettings.id !== prevSettingsId) {
+    setPrevSettingsId(storeSettings.id)
+    setStoreName(storeSettings.store_name || '')
+    setPhone(storeSettings.phone || '')
+    setAddress(storeSettings.address || '')
+    setCurrency(storeSettings.currency || 'EGP')
+    setLogoUrl(storeSettings.logo_url || '')
+    setFooterNote(storeSettings.invoice_footer_note || '')
+  }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

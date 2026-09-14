@@ -26,14 +26,16 @@ export const ProductCombobox: React.FC<ProductComboboxProps> = ({
   placeholder = 'ابحث باسم المنتج أو الباركود، أو اكتب اسم منتج جديد...',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const [prevValueName, setPrevValueName] = useState(value.name || '')
   const [searchTerm, setSearchTerm] = useState(value.name || '')
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Keep search term in sync with external value
-  useEffect(() => {
+  // Adjust state during render when prop changes (React recommended pattern)
+  if (value.name !== prevValueName) {
+    setPrevValueName(value.name || '')
     setSearchTerm(value.name || '')
-  }, [value.name])
+  }
 
   // Close dropdown on outside click
   useEffect(() => {

@@ -66,6 +66,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     return (
       <div
         ref={ref}
+        role="dialog"
+        aria-modal="true"
         className={cn(
           'relative w-full mx-auto rounded-2xl bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[88vh]',
           maxWidthClasses[maxWidth],
@@ -78,6 +80,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           <button
             type="button"
             onClick={onClose}
+            aria-label="إغلاق النافذة"
             className="absolute left-4 top-4 z-10 rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <X className="h-5 w-5" />

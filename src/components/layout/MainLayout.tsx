@@ -8,6 +8,18 @@ export const MainLayout: React.FC = () => {
   const location = useLocation()
   const isPosPage = location.pathname === '/pos'
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileSidebarOpen) {
+        setMobileSidebarOpen(false)
+      }
+    }
+    if (mobileSidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mobileSidebarOpen])
+
   return (
     <div className="min-h-screen flex bg-background text-foreground overflow-x-hidden">
       {/* Desktop Sidebar (hidden on mobile, visible md+) */}
@@ -17,14 +29,20 @@ export const MainLayout: React.FC = () => {
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div
+          className="fixed inset-0 z-50 md:hidden flex"
+          role="dialog"
+          aria-modal="true"
+          aria-label="قائمة التنقل الجانبية"
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in"
             onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
           />
           {/* Drawer */}
-          <div className="relative z-10 w-64 max-w-[80vw]">
+          <div className="relative z-10 w-64 max-w-[80vw] animate-in slide-in-from-right duration-200">
             <Sidebar
               className="h-full shadow-2xl"
               onCloseMobile={() => setMobileSidebarOpen(false)}

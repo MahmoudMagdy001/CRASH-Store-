@@ -42,8 +42,22 @@ interface PurchaseModalProps {
   isLoading?: boolean
 }
 
-export const PurchaseModal: React.FC<PurchaseModalProps> = ({
-  open,
+let purchaseRowSeq = 0
+function createPurchaseItem(overrides?: Partial<PurchaseItemRow>): PurchaseItemRow {
+  return {
+    id: `item_${++purchaseRowSeq}_${Date.now()}`,
+    product_id: null,
+    product_name: '',
+    is_new: false,
+    quantity: 1,
+    unit_cost: 0,
+    sale_price: 0,
+    update_product_prices: true,
+    ...overrides,
+  }
+}
+
+const PurchaseModalInner: React.FC<Omit<PurchaseModalProps, 'open'>> = ({
   onOpenChange,
   purchaseToEdit,
   products,
@@ -53,92 +67,33 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   isLoading = false,
 }) => {
   const isEditing = Boolean(purchaseToEdit)
-  const [supplierName, setSupplierName] = useState('')
+  const [supplierName, setSupplierName] = useState(purchaseToEdit?.supplier_name || '')
   const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().slice(0, 16) // YYYY-MM-DDTHH:mm
+    purchaseToEdit?.created_at
+      ? new Date(purchaseToEdit.created_at).toISOString().slice(0, 16)
+      : new Date().toISOString().slice(0, 16)
   )
-  const [items, setItems] = useState<PurchaseItemRow[]>([
-    {
-      id: Math.random().toString(),
-      product_id: null,
-      product_name: '',
-      is_new: false,
-      quantity: 1,
-      unit_cost: 0,
-      sale_price: 0,
-      update_product_prices: true,
-    },
-  ])
+  const [items, setItems] = useState<PurchaseItemRow[]>(() => {
+    if (purchaseToEdit?.purchase_items && purchaseToEdit.purchase_items.length > 0) {
+      return purchaseToEdit.purchase_items.map((item: PurchaseItemWithProduct) =>
+        createPurchaseItem({
+          product_id: item.product_id,
+          product_name: item.product?.name || '',
+          is_new: false,
+          quantity: item.quantity,
+          unit_cost: item.unit_cost,
+          sale_price: item.product?.sale_price || item.unit_cost,
+          update_product_prices: false,
+        })
+      )
+    }
+    return [createPurchaseItem()]
+  })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isProcessingNewProducts, setIsProcessingNewProducts] = useState(false)
 
-  // Reset form when modal opens
-  React.useEffect(() => {
-    if (open) {
-      if (purchaseToEdit) {
-        setSupplierName(purchaseToEdit.supplier_name || '')
-        setInvoiceDate(new Date(purchaseToEdit.created_at).toISOString().slice(0, 16))
-        if (purchaseToEdit.purchase_items && purchaseToEdit.purchase_items.length > 0) {
-          setItems(
-            purchaseToEdit.purchase_items.map((item: PurchaseItemWithProduct) => ({
-              id: Math.random().toString(),
-              product_id: item.product_id,
-              product_name: item.product?.name || '',
-              is_new: false,
-              quantity: item.quantity,
-              unit_cost: item.unit_cost,
-              sale_price: item.product?.sale_price || item.unit_cost,
-              update_product_prices: false,
-            }))
-          )
-        } else {
-          setItems([
-            {
-              id: Math.random().toString(),
-              product_id: null,
-              product_name: '',
-              is_new: false,
-              quantity: 1,
-              unit_cost: 0,
-              sale_price: 0,
-              update_product_prices: true,
-            },
-          ])
-        }
-      } else {
-        setSupplierName('')
-        setInvoiceDate(new Date().toISOString().slice(0, 16))
-        setItems([
-          {
-            id: Math.random().toString(),
-            product_id: null,
-            product_name: '',
-            is_new: false,
-            quantity: 1,
-            unit_cost: 0,
-            sale_price: 0,
-            update_product_prices: true,
-          },
-        ])
-      }
-      setErrorMsg(null)
-    }
-  }, [open, purchaseToEdit])
-
   const handleAddItemRow = () => {
-    setItems((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(),
-        product_id: null,
-        product_name: '',
-        is_new: false,
-        quantity: 1,
-        unit_cost: 0,
-        sale_price: 0,
-        update_product_prices: true,
-      },
-    ])
+    setItems((prev) => [...prev, createPurchaseItem()])
   }
 
   const handleRemoveItemRow = (id: string) => {
@@ -310,8 +265,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onClose={() => onOpenChange(false)} maxWidth="4xl">
+    <DialogContent onClose={() => onOpenChange(false)} maxWidth="4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <PackagePlus className="h-5 w-5 text-primary" />
@@ -563,6 +517,24 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           </DialogFooter>
         </form>
       </DialogContent>
+  )
+}
+
+export const PurchaseModal: React.FC<PurchaseModalProps> = ({
+  open,
+  onOpenChange,
+  ...props
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open && (
+        <PurchaseModalInner
+          key={props.purchaseToEdit?.id || 'new_purchase'}
+          onOpenChange={onOpenChange}
+          {...props}
+        />
+      )}
     </Dialog>
   )
 }
+

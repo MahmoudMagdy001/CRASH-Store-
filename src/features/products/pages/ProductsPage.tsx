@@ -8,6 +8,7 @@ import {
   type ProductWithCategory,
 } from '../api/productsApi'
 import { getCategories } from '@/features/categories/api/categoriesApi'
+import { getStoreSettings } from '@/features/settings/api/settingsApi'
 import { ProductModal, type ProductFormValues } from '../components/ProductModal'
 import { BarcodePrintModal } from '../components/BarcodePrintModal'
 import { PriceMenuModal } from '../components/PriceMenuModal'
@@ -17,7 +18,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { supabase } from '@/lib/supabaseClient'
 import {
   Table,
   TableHeader,
@@ -67,11 +67,8 @@ export const ProductsPage: React.FC = () => {
 
   // Fetch store settings for barcode and menu header
   const { data: settings } = useQuery({
-    queryKey: ['settings'],
-    queryFn: async () => {
-      const { data } = await supabase.from('settings').select('*').limit(1).maybeSingle()
-      return data
-    },
+    queryKey: ['store-settings'],
+    queryFn: getStoreSettings,
   })
 
   const showFeedback = (type: 'success' | 'error', text: string) => {

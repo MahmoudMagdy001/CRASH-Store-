@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import { useAuth } from '@/features/auth/context/useAuth'
 import { getStoreSettings } from '@/features/settings/api/settingsApi'
 import { cn } from '@/lib/utils'
 import {
