@@ -65,13 +65,11 @@ const navItems: NavItem[] = [
     label: 'العملاء والديون',
     to: '/customers',
     icon: Users,
-    adminOnly: true,
   },
   {
     label: 'المصروفات',
     to: '/expenses',
     icon: WalletCards,
-    adminOnly: true,
   },
   {
     label: 'التقارير المالية',
