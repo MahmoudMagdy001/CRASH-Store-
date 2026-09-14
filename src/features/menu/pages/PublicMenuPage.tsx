@@ -60,8 +60,16 @@ export const PublicMenuPage: React.FC = () => {
         <header className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-3xl p-5 shadow-2xl shadow-emerald-950/20 mb-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 shrink-0">
-                <Gamepad2 className="h-7 w-7" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 shrink-0 overflow-hidden p-1">
+                {storeInfo?.logo_url ? (
+                  <img
+                    src={storeInfo.logo_url}
+                    alt={storeName}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <Gamepad2 className="h-7 w-7" />
+                )}
               </div>
               <div>
                 <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">

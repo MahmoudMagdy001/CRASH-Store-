@@ -108,3 +108,47 @@ export async function adminUpdateUser(
 
   return Boolean(data)
 }
+
+/**
+ * Upload store logo file to Supabase storage bucket `store-assets`
+ */
+export async function uploadStoreLogo(file: File): Promise<string> {
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif']
+  if (!validTypes.includes(file.type)) {
+    throw new Error('نوع الملف غير مدعوم. يرجى رفع صورة بصيغة PNG أو JPG أو WebP أو SVG.')
+  }
+
+  // Max 5MB
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('حجم الصورة كبير جداً. الحد الأقصى هو 5 ميجابايت.')
+  }
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png'
+  const sanitizedBase = file.name
+    .substring(0, file.name.lastIndexOf('.'))
+    .replace(/[^a-zA-Z0-9]/g, '_')
+    .slice(0, 15)
+  const filePath = `logos/${Date.now()}_${sanitizedBase || 'logo'}.${fileExt}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('store-assets')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    })
+
+  if (uploadError) {
+    console.error('Storage upload error:', uploadError)
+    throw new Error(`فشل رفع الشعار إلى التخزين: ${uploadError.message}`)
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from('store-assets')
+    .getPublicUrl(filePath)
+
+  if (!publicUrlData?.publicUrl) {
+    throw new Error('تعذر إنشاء الرابط العام للصورة.')
+  }
+
+  return publicUrlData.publicUrl
+}

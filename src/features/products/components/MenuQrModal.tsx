@@ -124,9 +124,19 @@ export const MenuQrModal: React.FC<MenuQrModalProps> = ({
               `}</style>
 
               {/* Logo / Header */}
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
-                <Gamepad2 className="h-8 w-8" />
-              </div>
+              {settings?.logo_url ? (
+                <div className="flex justify-center mb-3">
+                  <img
+                    src={settings.logo_url}
+                    alt={storeName}
+                    className="h-16 w-auto object-contain max-w-[140px]"
+                  />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
+                  <Gamepad2 className="h-8 w-8" />
+                </div>
+              )}
 
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                 {storeName}

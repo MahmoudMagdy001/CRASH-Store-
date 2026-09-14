@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import {
@@ -6,6 +6,7 @@ import {
   updateStoreSettings,
   getAdminUsersList,
   adminUpdateUser,
+  uploadStoreLogo,
   type AdminUserItem,
 } from '../api/settingsApi'
 import { EditUserModal } from '../components/EditUserModal'
@@ -28,6 +29,9 @@ import {
   Info,
   Receipt,
   Gamepad2,
+  UploadCloud,
+  Upload,
+  Trash2,
 } from 'lucide-react'
 
 export const SettingsPage: React.FC = () => {
@@ -62,6 +66,8 @@ export const SettingsPage: React.FC = () => {
   const [currency, setCurrency] = useState('EGP')
   const [logoUrl, setLogoUrl] = useState('')
   const [footerNote, setFooterNote] = useState('')
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (storeSettings) {
@@ -73,6 +79,32 @@ export const SettingsPage: React.FC = () => {
       setFooterNote(storeSettings.invoice_footer_note || '')
     }
   }, [storeSettings])
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsUploadingLogo(true)
+      const publicUrl = await uploadStoreLogo(file)
+      setLogoUrl(publicUrl)
+      showFeedback('success', 'تم رفع صورة اللوجو إلى سحابة التخزين (Bucket) بنجاح!')
+    } catch (err: any) {
+      showFeedback('error', err?.message || 'فشل رفع صورة اللوجو')
+    } finally {
+      setIsUploadingLogo(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveLogo = () => {
+    setLogoUrl('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   const settingsMutation = useMutation({
     mutationFn: async () => {
@@ -308,21 +340,107 @@ export const SettingsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Logo URL */}
-                  <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">
-                      رابط الشعار / اللوجو (اختياري):
+                  {/* Logo Upload Section */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-foreground block">
+                      شعار المتجر (اللوجو):
                     </label>
-                    <Input
-                      type="url"
-                      value={logoUrl}
-                      onChange={(e) => setLogoUrl(e.target.value)}
-                      placeholder="https://example.com/logo.png"
-                      className="h-9 text-xs font-mono"
+
+                    {/* Hidden native file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                      disabled={isUploadingLogo}
                     />
-                    <p className="text-[11px] text-muted-foreground mt-1">
-                      اتركه فارغاً لاستخدام أيقونة البلايستيشن وشعار Crash Store التلقائي.
-                    </p>
+
+                    {logoUrl ? (
+                      <div className="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl bg-muted/30 border border-border">
+                        <div className="relative group shrink-0 w-20 h-20 rounded-xl bg-background border border-border/80 flex items-center justify-center p-2 overflow-hidden shadow-xs">
+                          <img
+                            src={logoUrl}
+                            alt="شعار المتجر"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-1 text-center sm:text-right">
+                          <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <span>تم حفظ الشعار في سحابة التخزين (Bucket)</span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground truncate dir-ltr font-mono">
+                            {logoUrl}
+                          </p>
+                          <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploadingLogo}
+                              className="h-7 text-xs gap-1"
+                            >
+                              {isUploadingLogo ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Upload className="h-3.5 w-3.5" />
+                              )}
+                              <span>تغيير الصورة</span>
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemoveLogo}
+                              disabled={isUploadingLogo}
+                              className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>حذف الشعار</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => !isUploadingLogo && fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${
+                          isUploadingLogo
+                            ? 'border-primary bg-primary/5 cursor-wait'
+                            : 'border-border/80 hover:border-primary/60 hover:bg-muted/30'
+                        }`}
+                      >
+                        {isUploadingLogo ? (
+                          <div className="flex flex-col items-center gap-2 py-2">
+                            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                            <p className="text-xs font-bold text-foreground">
+                              جاري رفع الشعار إلى سحابة التخزين (Bucket)...
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              يرجى الانتظار ثوانٍ معدودة
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 py-1">
+                            <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+                              <UploadCloud className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-foreground">
+                                انقر لاختيار ورفع صورة اللوجو من جهازك
+                              </p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                يدعم (PNG, JPG, WebP, SVG) - الحد الأقصى للحجم 5 ميجابايت
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Invoice Footer Note */}
@@ -371,9 +489,19 @@ export const SettingsPage: React.FC = () => {
 
             <CardContent className="p-4">
               <div className="bg-white text-slate-900 p-5 rounded-2xl border-2 border-dashed border-slate-300 shadow-xs text-center font-sans space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-1">
-                  <Gamepad2 className="h-6 w-6" />
-                </div>
+                {logoUrl ? (
+                  <div className="flex justify-center mb-1">
+                    <img
+                      src={logoUrl}
+                      alt="Store Logo"
+                      className="h-12 w-auto object-contain max-w-[120px] mx-auto"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-1">
+                    <Gamepad2 className="h-6 w-6" />
+                  </div>
+                )}
 
                 <h3 className="font-black text-lg text-slate-900 leading-tight">
                   {storeName || 'Crash Store'}
