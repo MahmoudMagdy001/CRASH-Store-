@@ -63,7 +63,6 @@ export const ExpensesPage: React.FC = () => {
   const { data: summary } = useQuery({
     queryKey: ['expensesSummary'],
     queryFn: getExpensesSummary,
-    enabled: isAdmin, // Only calculate full stats for admin
   })
 
   // Create Mutation
@@ -190,62 +189,60 @@ export const ExpensesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Top Statistics Cards (Admin Only) */}
-      {isAdmin && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Today's Expenses */}
-          <Card className="bg-card/50 border shadow-sm">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">مصروفات اليوم</p>
-                <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                  {Number(summary?.todayTotal || 0).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                  })}{' '}
-                  <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
-                </h3>
-              </div>
-              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl">
-                <Calendar className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Top Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Today's Expenses */}
+        <Card className="bg-card/50 border shadow-sm">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">مصروفات اليوم</p>
+              <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
+                {Number(summary?.todayTotal || 0).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                })}{' '}
+                <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
+              </h3>
+            </div>
+            <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl">
+              <Calendar className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Month's Expenses */}
-          <Card className="bg-card/50 border shadow-sm">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">مصروفات الشهر الحالي</p>
-                <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                  {Number(summary?.monthTotal || 0).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                  })}{' '}
-                  <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
-                </h3>
-              </div>
-              <div className="p-3 bg-red-500/10 text-red-600 rounded-xl">
-                <Coins className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Month's Expenses */}
+        <Card className="bg-card/50 border shadow-sm">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">مصروفات الشهر الحالي</p>
+              <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
+                {Number(summary?.monthTotal || 0).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                })}{' '}
+                <span className="text-xs font-bold font-sans text-muted-foreground">ج.م</span>
+              </h3>
+            </div>
+            <div className="p-3 bg-red-500/10 text-red-600 rounded-xl">
+              <Coins className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Total Records */}
-          <Card className="bg-card/50 border shadow-sm">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">إجمالي قيود المصروفات</p>
-                <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
-                  {summary?.totalCount || expenses.length}{' '}
-                  <span className="text-xs font-bold font-sans text-muted-foreground">قيد</span>
-                </h3>
-              </div>
-              <div className="p-3 bg-purple-500/10 text-purple-600 rounded-xl">
-                <Layers className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        {/* Total Records */}
+        <Card className="bg-card/50 border shadow-sm">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">إجمالي قيود المصروفات</p>
+              <h3 className="text-2xl font-black text-foreground mt-1 font-mono tracking-tight">
+                {summary?.totalCount || expenses.length}{' '}
+                <span className="text-xs font-bold font-sans text-muted-foreground">قيد</span>
+              </h3>
+            </div>
+            <div className="p-3 bg-purple-500/10 text-purple-600 rounded-xl">
+              <Layers className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Search Bar */}
       <Card className="border shadow-sm">

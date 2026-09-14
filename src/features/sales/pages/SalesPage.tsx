@@ -9,7 +9,6 @@ import { Link } from 'react-router-dom'
 import {
   History,
   Search,
-  Printer,
   Calendar,
   CreditCard,
   Banknote,
@@ -19,6 +18,7 @@ import {
   RefreshCw,
   Clock,
   Users,
+  Eye,
 } from 'lucide-react'
 
 type DatePeriod = 'today' | 'month' | 'year' | 'all' | 'custom'
@@ -169,7 +169,12 @@ export const SalesPage: React.FC = () => {
         s.invoice_number.toLowerCase().includes(q) ||
         (s.customer_name && s.customer_name.toLowerCase().includes(q)) ||
         (s.cashier?.full_name &&
-          s.cashier.full_name.toLowerCase().includes(q))
+          s.cashier.full_name.toLowerCase().includes(q)) ||
+        s.sale_items?.some(
+          (itm) =>
+            itm.products?.name?.toLowerCase().includes(q) ||
+            itm.products?.barcode?.toLowerCase().includes(q)
+        )
       const matchesMethod =
         selectedMethod === 'all' || s.payment_method === selectedMethod
       return matchesSearch && matchesMethod
@@ -451,7 +456,7 @@ export const SalesPage: React.FC = () => {
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="البحث برقم الفاتورة أو اسم الكاشير..."
+            placeholder="البحث برقم الفاتورة، العميل، اسم المنتج أو الباركود..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-9 h-10 text-xs rounded-xl"
@@ -563,7 +568,9 @@ export const SalesPage: React.FC = () => {
                   return (
                     <tr
                       key={sale.id}
-                      className="hover:bg-muted/20 transition-colors"
+                      onClick={() => handleOpenReceipt(sale)}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                      title="انقر لمعاينة أو طباعة الفاتورة"
                     >
                       <td className="py-3 px-3 font-mono font-bold text-foreground">
                         {sale.invoice_number}
@@ -653,13 +660,16 @@ export const SalesPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3 text-center">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => handleOpenReceipt(sale)}
-                          className="h-8 gap-1 text-xs text-primary hover:bg-primary/10 px-2"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleOpenReceipt(sale)
+                          }}
+                          className="h-8 gap-1.5 text-xs text-primary font-bold hover:bg-primary/10 px-2.5 rounded-lg border-primary/30 shadow-2xs"
                         >
-                          <Printer className="h-3.5 w-3.5" />
-                          طباعة
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>معاينة الفاتورة</span>
                         </Button>
                       </td>
                     </tr>

@@ -59,7 +59,6 @@ const navItems: NavItem[] = [
     label: 'سجل المبيعات',
     to: '/sales',
     icon: History,
-    adminOnly: true,
   },
   {
     label: 'العملاء والديون',
