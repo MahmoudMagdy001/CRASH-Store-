@@ -1,6 +1,8 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/context/AuthContext'
+import { getStoreSettings } from '@/features/settings/api/settingsApi'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -42,13 +44,13 @@ const navItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: 'الأقسام',
+    label: 'التصنيفات',
     to: '/categories',
     icon: FolderTree,
     adminOnly: true,
   },
   {
-    label: 'المشتريات والتوريد',
+    label: 'المشتريات والموردين',
     to: '/purchases',
     icon: Truck,
     adminOnly: true,
@@ -60,7 +62,7 @@ const navItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: 'حسابات العملاء (الآجل)',
+    label: 'العملاء والديون',
     to: '/customers',
     icon: Users,
     adminOnly: true,
@@ -72,7 +74,7 @@ const navItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: 'التقارير والإحصائيات',
+    label: 'التقارير المالية',
     to: '/reports',
     icon: BarChart3,
     adminOnly: true,
@@ -93,6 +95,15 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) => {
   const { isAdmin } = useAuth()
 
+  const { data: storeSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: getStoreSettings,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  const storeName = storeSettings?.store_name || 'Crash Store'
+  const logoUrl = storeSettings?.logo_url
+
   // Cashier only sees non-admin items (POS)
   const visibleNavItems = navItems.filter((item) => (item.adminOnly ? isAdmin : true))
 
@@ -105,12 +116,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
     >
       {/* Brand Header */}
       <div className="h-16 flex items-center gap-3 px-6 border-b border-border">
-        <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
-          <Store className="h-5 w-5" />
-        </div>
-        <div>
-          <h2 className="font-bold text-base text-foreground leading-tight">Crash Store</h2>
-          <p className="text-xs text-muted-foreground">نظام المبيعات المتكامل</p>
+        {logoUrl ? (
+          <div className="h-9 w-9 rounded-lg bg-background border border-border/80 flex items-center justify-center p-1 shadow-xs shrink-0 overflow-hidden">
+            <img src={logoUrl} alt={storeName} className="w-full h-full object-contain" />
+          </div>
+        ) : (
+          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm shrink-0">
+            <Store className="h-5 w-5" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h2 className="font-bold text-base text-foreground leading-tight truncate" title={storeName}>
+            {storeName}
+          </h2>
+          <p className="text-xs text-muted-foreground truncate">نظام المبيعات المتكامل</p>
         </div>
       </div>
 

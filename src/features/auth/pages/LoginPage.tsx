@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { useLocation, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { useQuery } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useAuth } from '../context/AuthContext'
+import { getPublicStoreInfo } from '@/features/menu/api/menuApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -71,16 +73,31 @@ export const LoginPage: React.FC = () => {
     // Role will update via AuthContext listener and redirect automatically
   }
 
+  const { data: storeInfo } = useQuery({
+    queryKey: ['public-store-info'],
+    queryFn: getPublicStoreInfo,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  const storeName = storeInfo?.store_name || 'متجر كراش (Crash Store)'
+  const logoUrl = storeInfo?.logo_url
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-4">
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-6 text-center">
-          <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 mb-3 text-primary-foreground">
-            <ShoppingCart className="h-8 w-8" />
-          </div>
+          {logoUrl ? (
+            <div className="h-16 w-16 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg shadow-black/5 mb-3 p-2 overflow-hidden">
+              <img src={logoUrl} alt={storeName} className="w-full h-full object-contain" />
+            </div>
+          ) : (
+            <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 mb-3 text-primary-foreground">
+              <ShoppingCart className="h-8 w-8" />
+            </div>
+          )}
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            متجر كراش (Crash Store)
+            {storeName}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             نظام إدارة المبيعات ونقاط البيع الذكي

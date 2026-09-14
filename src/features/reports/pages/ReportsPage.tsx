@@ -567,16 +567,27 @@ export const ReportsPage: React.FC = () => {
         >
           {/* Header */}
           <div className="border-b-2 border-slate-900 pb-4 mb-5 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">
-                {storeName}
-              </h1>
-              <p className="text-xs text-slate-600 font-semibold mt-0.5">
-                التقرير المالي والمحاسبي الدوري
-              </p>
-              {storePhone && (
-                <p className="text-[11px] text-slate-500 mt-1">هاتف: {storePhone}</p>
+            <div className="flex items-center gap-3">
+              {storeSettings?.logo_url && (
+                <div className="h-14 w-14 rounded-xl border border-slate-300 p-1 flex items-center justify-center shrink-0">
+                  <img
+                    src={storeSettings.logo_url}
+                    alt={storeName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               )}
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900">
+                  {storeName}
+                </h1>
+                <p className="text-xs text-slate-600 font-semibold mt-0.5">
+                  التقرير المالي والمحاسبي الدوري
+                </p>
+                {storePhone && (
+                  <p className="text-[11px] text-slate-500 mt-1">هاتف: {storePhone}</p>
+                )}
+              </div>
             </div>
 
             <div className="text-left text-xs" dir="rtl">

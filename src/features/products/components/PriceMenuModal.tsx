@@ -179,10 +179,20 @@ export const PriceMenuModal: React.FC<PriceMenuModalProps> = ({
             {/* Menu Header */}
             <div className="border-b-2 border-slate-900 pb-5 mb-5 flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-                    <Gamepad2 className="h-6 w-6" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  {settings?.logo_url ? (
+                    <div className="h-12 w-12 rounded-xl bg-white border border-slate-300 p-1 flex items-center justify-center shrink-0">
+                      <img
+                        src={settings.logo_url}
+                        alt={storeName}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold shrink-0">
+                      <Gamepad2 className="h-6 w-6" />
+                    </div>
+                  )}
                   <div>
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
                       {storeName}
