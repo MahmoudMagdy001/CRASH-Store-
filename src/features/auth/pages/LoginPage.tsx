@@ -80,7 +80,7 @@ export const LoginPage: React.FC = () => {
   })
 
   const storeName = storeInfo?.store_name || 'متجر كراش (Crash Store)'
-  const logoUrl = storeInfo?.logo_url
+  const logoUrl = storeInfo?.logo_url || '/logo.webp'
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-4">

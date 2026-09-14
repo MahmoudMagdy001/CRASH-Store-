@@ -102,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
   })
 
   const storeName = storeSettings?.store_name || 'Crash Store'
-  const logoUrl = storeSettings?.logo_url
+  const logoUrl = storeSettings?.logo_url || '/logo.webp'
 
   // Cashier only sees non-admin items (POS)
   const visibleNavItems = navItems.filter((item) => (item.adminOnly ? isAdmin : true))

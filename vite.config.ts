@@ -10,4 +10,10 @@ export default defineConfig({
       '@': import.meta.dirname + '/src',
     },
   },
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
+  },
 })
