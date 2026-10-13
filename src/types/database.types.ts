@@ -221,6 +221,8 @@ export interface Database {
           customer_name: string | null
           amount_paid: number
           remaining_amount: number
+          return_amount: number
+          is_fully_returned: boolean
         }
         Insert: {
           id?: string
@@ -233,6 +235,8 @@ export interface Database {
           customer_name?: string | null
           amount_paid?: number
           remaining_amount?: number
+          return_amount?: number
+          is_fully_returned?: boolean
         }
         Update: {
           id?: string
@@ -245,6 +249,8 @@ export interface Database {
           customer_name?: string | null
           amount_paid?: number
           remaining_amount?: number
+          return_amount?: number
+          is_fully_returned?: boolean
         }
         Relationships: [
           {
@@ -325,6 +331,103 @@ export interface Database {
         }
         Relationships: []
       }
+      returns: {
+        Row: {
+          id: string
+          return_number: string
+          sale_id: string
+          return_type: 'partial' | 'full'
+          total_returned: number
+          reason: string | null
+          processed_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          return_number: string
+          sale_id: string
+          return_type?: 'partial' | 'full'
+          total_returned?: number
+          reason?: string | null
+          processed_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          return_number?: string
+          sale_id?: string
+          return_type?: 'partial' | 'full'
+          total_returned?: number
+          reason?: string | null
+          processed_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'returns_sale_id_fkey'
+            columns: ['sale_id']
+            isOneToOne: false
+            referencedRelation: 'sales'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'returns_processed_by_fkey'
+            columns: ['processed_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      return_items: {
+        Row: {
+          id: string
+          return_id: string
+          sale_item_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          return_id: string
+          sale_item_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          return_id?: string
+          sale_item_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'return_items_return_id_fkey'
+            columns: ['return_id']
+            isOneToOne: false
+            referencedRelation: 'returns'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'return_items_sale_item_id_fkey'
+            columns: ['sale_item_id']
+            isOneToOne: false
+            referencedRelation: 'sale_items'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'return_items_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -347,6 +450,15 @@ export interface Database {
           p_items: Json
           p_customer_name?: string | null
           p_amount_paid?: number | null
+        }
+        Returns: string
+      }
+      process_return: {
+        Args: {
+          p_sale_id: string
+          p_return_type: string
+          p_items: Json
+          p_reason?: string | null
         }
         Returns: string
       }

@@ -61,6 +61,11 @@ const PublicMenuPage = lazy(() =>
     default: m.PublicMenuPage,
   }))
 )
+const ReturnsPage = lazy(() =>
+  import('@/features/returns/pages/ReturnsPage').then((m) => ({
+    default: m.ReturnsPage,
+  }))
+)
 
 export function App() {
   return (
@@ -152,6 +157,14 @@ export function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <ReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/returns"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'cashier']}>
+                <ReturnsPage />
               </ProtectedRoute>
             }
           />

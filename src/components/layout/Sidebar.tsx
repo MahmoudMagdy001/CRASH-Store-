@@ -16,6 +16,7 @@ import {
   Settings,
   Store,
   Users,
+  Undo2,
 } from 'lucide-react'
 
 interface NavItem {
@@ -75,6 +76,11 @@ const navItems: NavItem[] = [
     to: '/reports',
     icon: BarChart3,
     adminOnly: true,
+  },
+  {
+    label: 'المرتجعات',
+    to: '/returns',
+    icon: Undo2,
   },
   {
     label: 'الإعدادات والمستخدمين',

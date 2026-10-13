@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getSalesList, getStoreSettings } from '@/features/pos/api/posApi'
 import type { SaleWithDetails } from '@/features/pos/types/pos.types'
 import { ReceiptModal } from '@/features/pos/components/ReceiptModal'
+import { ReturnModal } from '@/features/returns/components/ReturnModal'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import {
   Clock,
   Users,
   Eye,
+  Undo2,
 } from 'lucide-react'
 
 type DatePeriod = 'today' | 'month' | 'year' | 'all' | 'custom'
@@ -83,6 +85,10 @@ export const SalesPage: React.FC = () => {
   // Selected sale for receipt reprint modal
   const [selectedSale, setSelectedSale] = useState<SaleWithDetails | null>(null)
   const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false)
+
+  // Selected sale for return modal
+  const [returnSale, setReturnSale] = useState<SaleWithDetails | null>(null)
+  const [isReturnOpen, setIsReturnOpen] = useState<boolean>(false)
 
   // Queries
   const {
@@ -179,6 +185,11 @@ export const SalesPage: React.FC = () => {
   const handleOpenReceipt = (sale: SaleWithDetails) => {
     setSelectedSale(sale)
     setIsReceiptOpen(true)
+  }
+
+  const handleOpenReturn = (sale: SaleWithDetails) => {
+    setReturnSale(sale)
+    setIsReturnOpen(true)
   }
 
   return (
@@ -525,14 +536,15 @@ export const SalesPage: React.FC = () => {
                 <th className="py-3 px-3">الإجمالي</th>
                 <th className="py-3 px-3 text-emerald-600 dark:text-emerald-400 font-bold">المدفوع</th>
                 <th className="py-3 px-3 text-amber-600 dark:text-amber-400 font-bold">المتبقي (دين)</th>
-                <th className="py-3 px-3 text-center">الإجراء</th>
+                <th className="py-3 px-3 text-center">معاينة</th>
+                <th className="py-3 px-3 text-center text-rose-600 dark:text-rose-400 font-bold">استرجاع</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={11} className="py-4 px-3">
+                    <td colSpan={12} className="py-4 px-3">
                       <div className="h-5 bg-muted rounded w-full" />
                     </td>
                   </tr>
@@ -540,7 +552,7 @@ export const SalesPage: React.FC = () => {
               ) : filteredSales.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={11}
+                    colSpan={12}
                     className="py-12 text-center text-muted-foreground"
                   >
                     لا توجد فواتير مبيعات مسجلة حتى الآن
@@ -664,8 +676,29 @@ export const SalesPage: React.FC = () => {
                           className="h-8 gap-1.5 text-xs text-primary font-bold hover:bg-primary/10 px-2.5 rounded-lg border-primary/30 shadow-2xs"
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          <span>معاينة الفاتورة</span>
+                          <span>معاينة</span>
                         </Button>
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        {sale.is_fully_returned ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-muted-foreground text-[11px] font-bold">
+                            <Undo2 className="h-3 w-3" />
+                            مسترجع
+                          </span>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleOpenReturn(sale)
+                            }}
+                            className="h-8 gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 px-2.5 rounded-lg border-rose-500/30 shadow-2xs"
+                          >
+                            <Undo2 className="h-3.5 w-3.5" />
+                            <span>استرجاع</span>
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   )
@@ -682,6 +715,14 @@ export const SalesPage: React.FC = () => {
         onOpenChange={setIsReceiptOpen}
         sale={selectedSale}
         settings={settings}
+      />
+
+      {/* Return Modal */}
+      <ReturnModal
+        open={isReturnOpen}
+        onOpenChange={setIsReturnOpen}
+        sale={returnSale}
+        onSuccess={() => refetchSales()}
       />
     </div>
   )
