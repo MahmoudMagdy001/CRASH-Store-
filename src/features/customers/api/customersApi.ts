@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient'
 import { getSalesList } from '@/features/pos/api/posApi'
+import { computeSaleFinancials } from '@/features/sales/utils/salesCalculations'
 import type { CustomerSummary } from '../types/customer.types'
 
 /**
@@ -30,10 +31,12 @@ export async function getCustomersSummaryList(): Promise<CustomerSummary[]> {
     }
 
     const current = customersMap.get(nameKey)!
-    current.total_sales += Number(sale.total_amount || 0)
-    current.total_paid += Number(sale.amount_paid ?? sale.total_amount)
-    current.total_remaining += Number(sale.remaining_amount || 0)
-    current.invoices_count += 1
+    const fin = computeSaleFinancials(sale)
+
+    current.total_sales += fin.netTotal
+    current.total_paid += fin.netPaid
+    current.total_remaining += fin.netRemaining
+    current.invoices_count += fin.isFullyReturned ? 0 : 1
     current.sales.push(sale)
 
     // Keep the most recent date

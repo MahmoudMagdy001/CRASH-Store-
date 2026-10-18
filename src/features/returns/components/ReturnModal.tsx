@@ -89,8 +89,35 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
     })
   }, [sale, existingReturns, userSelections, returnType])
 
-  // ─── Derived: total amount to return ─────────────────────────────────────
-  const totalReturnAmount = useMemo(() => {
+  // ─── Pro-rated discount calculation ──────────────────────────────────────
+  const saleSubtotal = useMemo(() => {
+    if (!sale) return 0
+    return (sale.sale_items || []).reduce(
+      (sum, si) => sum + si.quantity * Number(si.unit_price || 0),
+      0
+    )
+  }, [sale])
+
+  const saleDiscount = Math.max(0, Number(sale?.discount || 0))
+  const saleNetTotal = Math.max(0, Number(sale?.total_amount || 0))
+
+  const discountRatio = useMemo(() => {
+    if (!sale || saleSubtotal <= 0 || saleDiscount <= 0) return 1
+    return Math.max(0, Math.min(1, saleNetTotal / saleSubtotal))
+  }, [sale, saleSubtotal, saleDiscount, saleNetTotal])
+
+  // Total already returned on this sale
+  const alreadyReturnedTotal = useMemo(() => {
+    return existingReturns.reduce(
+      (sum, ret) => sum + Number(ret.total_returned || 0),
+      0
+    )
+  }, [existingReturns])
+
+  const remainingSaleNetCapacity = Math.max(0, saleNetTotal - alreadyReturnedTotal)
+
+  // Undiscounted raw sum of selected items to return
+  const rawReturnAmount = useMemo(() => {
     return items.reduce((sum, item) => {
       if (item.selected && item.return_quantity > 0) {
         return sum + item.return_quantity * item.unit_price
@@ -98,6 +125,36 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
       return sum
     }, 0)
   }, [items])
+
+  const isAllAvailableSelected = useMemo(() => {
+    return (
+      items.length > 0 &&
+      items.every(
+        (i) =>
+          i.available_to_return === 0 ||
+          (i.selected && i.return_quantity === i.available_to_return)
+      )
+    )
+  }, [items])
+
+  // Net refund amount taking into account invoice discount
+  const totalReturnAmount = useMemo(() => {
+    if (returnType === 'full' || isAllAvailableSelected) {
+      return remainingSaleNetCapacity
+    }
+    const prorated = Math.round(rawReturnAmount * discountRatio * 100) / 100
+    return Math.min(remainingSaleNetCapacity, prorated)
+  }, [
+    returnType,
+    isAllAvailableSelected,
+    remainingSaleNetCapacity,
+    rawReturnAmount,
+    discountRatio,
+  ])
+
+  const totalDiscountDeduction = useMemo(() => {
+    return Math.max(0, rawReturnAmount - totalReturnAmount)
+  }, [rawReturnAmount, totalReturnAmount])
 
   const selectedItemsCount = items.filter(
     (i) => i.selected && i.return_quantity > 0
@@ -409,11 +466,29 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
 
                             {/* Line total */}
                             <td className="py-3 px-3 font-mono font-bold text-rose-600 dark:text-rose-400">
-                              {item.selected && lineTotal > 0
-                                ? lineTotal.toLocaleString('ar-EG', {
-                                    minimumFractionDigits: 2,
-                                  }) + ' ج.م'
-                                : '—'}
+                              {item.selected && lineTotal > 0 ? (
+                                <div>
+                                  <span>
+                                    {(discountRatio < 1
+                                      ? Math.round(lineTotal * discountRatio * 100) / 100
+                                      : lineTotal
+                                    ).toLocaleString('ar-EG', {
+                                      minimumFractionDigits: 2,
+                                    })}{' '}
+                                    ج.م
+                                  </span>
+                                  {discountRatio < 1 && (
+                                    <span className="block text-[10px] text-muted-foreground line-through font-normal">
+                                      {lineTotal.toLocaleString('ar-EG', {
+                                        minimumFractionDigits: 2,
+                                      })}{' '}
+                                      ج.م
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                '—'
+                              )}
                             </td>
                           </tr>
                         )
@@ -444,7 +519,7 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
             {/* Total */}
             <div className="flex flex-col">
               <span className="text-[11px] text-muted-foreground font-medium">
-                إجمالي المسترجع
+                إجمالي المبلغ المسترد للعميل
               </span>
               <span className="text-lg font-black font-mono text-rose-600 dark:text-rose-400">
                 {totalReturnAmount.toLocaleString('ar-EG', {
@@ -454,6 +529,11 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
                   ج.م
                 </span>
               </span>
+              {totalDiscountDeduction > 0 && (
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                  (تم خصم نصيب الخصم: -{totalDiscountDeduction.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م)
+                </span>
+              )}
               {selectedItemsCount > 0 && (
                 <span className="text-[11px] text-muted-foreground">
                   {selectedItemsCount} صنف محدد

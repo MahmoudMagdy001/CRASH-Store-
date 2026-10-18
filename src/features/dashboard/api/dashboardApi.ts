@@ -7,6 +7,10 @@ export interface DashboardSalesMetrics {
   all_time: number
   invoices_today: number
   invoices_month: number
+  invoices_active_today?: number
+  invoices_active_month?: number
+  invoices_returned_today?: number
+  invoices_returned_month?: number
 }
 
 export interface DashboardMetricsGroup {
@@ -14,6 +18,13 @@ export interface DashboardMetricsGroup {
   week: number
   month: number
   all_time: number
+}
+
+export interface DashboardReturnsMetrics extends DashboardMetricsGroup {
+  executed_today?: number
+  executed_week?: number
+  executed_month?: number
+  executed_all?: number
 }
 
 export interface DashboardInventoryMetrics {
@@ -28,6 +39,10 @@ export interface DashboardInventoryMetrics {
 
 export interface AdminDashboardMetrics {
   sales: DashboardSalesMetrics
+  gross_sales?: DashboardMetricsGroup
+  paid?: DashboardMetricsGroup
+  credit?: DashboardMetricsGroup
+  returns?: DashboardReturnsMetrics
   cogs: DashboardMetricsGroup
   expenses: DashboardMetricsGroup
   purchases: DashboardMetricsGroup
@@ -59,7 +74,35 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
     throw new Error('فشل جلب إحصائيات لوحة التحكم: ' + error.message)
   }
 
-  return data as unknown as AdminDashboardMetrics
+  const result = data as unknown as AdminDashboardMetrics
+
+  return {
+    ...result,
+    paid: result.paid || {
+      today: result.sales?.today || 0,
+      week: result.sales?.week || 0,
+      month: result.sales?.month || 0,
+      all_time: result.sales?.all_time || 0,
+    },
+    credit: result.credit || {
+      today: 0,
+      week: 0,
+      month: 0,
+      all_time: 0,
+    },
+    returns: result.returns || {
+      today: 0,
+      week: 0,
+      month: 0,
+      all_time: 0,
+    },
+    gross_sales: result.gross_sales || {
+      today: result.sales?.today || 0,
+      week: result.sales?.week || 0,
+      month: result.sales?.month || 0,
+      all_time: result.sales?.all_time || 0,
+    },
+  }
 }
 
 /**

@@ -26,6 +26,9 @@ import {
   ArrowUpRight,
   Boxes,
   Gamepad2,
+  Banknote,
+  Clock,
+  Undo2,
 } from 'lucide-react'
 
 type MetricPeriod = 'today' | 'week' | 'month' | 'all_time'
@@ -68,9 +71,36 @@ export const DashboardPage: React.FC = () => {
   }[period]
 
   const currentSales = metrics?.sales[period] || 0
+  const currentPaid = metrics?.paid?.[period] ?? currentSales
+  const currentCredit = metrics?.credit?.[period] ?? 0
+  const currentReturns = metrics?.returns?.[period] ?? 0
+  const currentExecutedReturns =
+    period === 'today'
+      ? metrics?.returns?.executed_today
+      : period === 'week'
+      ? metrics?.returns?.executed_week
+      : period === 'month'
+      ? metrics?.returns?.executed_month
+      : metrics?.returns?.executed_all
+  const currentGrossSales = metrics?.gross_sales?.[period] ?? currentSales
   const currentCogs = metrics?.cogs[period] || 0
   const currentExpenses = metrics?.expenses[period] || 0
   const currentNetProfit = metrics?.net_profit[period] || 0
+
+  const activeInvoices =
+    period === 'today'
+      ? metrics?.sales.invoices_active_today
+      : period === 'month'
+      ? metrics?.sales.invoices_active_month
+      : undefined
+
+  const returnedInvoices =
+    period === 'today'
+      ? metrics?.sales.invoices_returned_today
+      : period === 'month'
+      ? metrics?.sales.invoices_returned_month
+      : undefined
+
   const currentInvoices =
     period === 'today'
       ? metrics?.sales.invoices_today
@@ -148,9 +178,14 @@ export const DashboardPage: React.FC = () => {
         <Card className="relative overflow-hidden border-border/80 bg-gradient-to-br from-card to-muted/20 shadow-sm">
           <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500 rounded-r" />
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-bold text-muted-foreground">
-              إجمالي المبيعات ({periodLabel})
-            </CardTitle>
+            <div>
+              <CardTitle className="text-xs font-bold text-muted-foreground">
+                إجمالي المبيعات ({periodLabel})
+              </CardTitle>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">
+                صافي بعد المرتجع
+              </span>
+            </div>
             <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <TrendingUp className="h-4 w-4" />
             </div>
@@ -166,12 +201,54 @@ export const DashboardPage: React.FC = () => {
                 })} ج.م`
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1 font-medium">
+
+            {/* Collected vs Credit vs Returns Breakdown Badges */}
+            <div className="flex items-center gap-1.5 flex-wrap mt-2">
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                title="المبالغ المحصلة فعلياً نقداً وبطاقة"
+              >
+                <Banknote className="h-3 w-3" />
+                <span>محصل: {currentPaid.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م</span>
+              </span>
+
+              {currentCredit > 0 && (
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                  title="المبيعات المتبقية بالأجل (ديون)"
+                >
+                  <Clock className="h-3 w-3" />
+                  <span>آجل: {currentCredit.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م</span>
+                </span>
+              )}
+
+              {currentReturns > 0 && (
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"
+                  title={
+                    currentExecutedReturns && currentExecutedReturns > currentReturns
+                      ? `مرتجع فواتير الفترة: ${currentReturns.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م | إجمالي المرتجعات المنفذة خلال الفترة: ${currentExecutedReturns.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م (تشمل فواتير سابقة)`
+                      : `إجمالي المرتجعات المخصومة من فواتير الفترة (الإجمالي الأصلي قبل المرتجع: ${currentGrossSales.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م)`
+                  }
+                >
+                  <Undo2 className="h-3 w-3" />
+                  <span>مرتجع: {currentReturns.toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ج.م</span>
+                </span>
+              )}
+            </div>
+
+            <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1 font-medium">
               <Receipt className="h-3 w-3" />
               <span>
-                {currentInvoices !== undefined
-                  ? `${formatNumber(currentInvoices)} فاتورة بيع مسجلة`
-                  : 'إجمالي إيراد الفواتير'}
+                {currentInvoices !== undefined ? (
+                  returnedInvoices && returnedInvoices > 0 ? (
+                    `${formatNumber(activeInvoices ?? (currentInvoices - returnedInvoices))} فاتورة نشطة (${formatNumber(returnedInvoices)} مسترجعة)`
+                  ) : (
+                    `${formatNumber(currentInvoices)} فاتورة بيع مسجلة`
+                  )
+                ) : (
+                  'إجمالي إيراد الفواتير'
+                )}
               </span>
             </p>
           </CardContent>
@@ -338,13 +415,20 @@ export const DashboardPage: React.FC = () => {
               })}{' '}
               ج.م
             </p>
-            <Link
-              to="/customers"
-              className="text-[10px] text-primary hover:underline font-bold flex items-center gap-0.5 mt-0.5"
-            >
-              <span>إدارة حسابات الديون</span>
-              <ArrowUpRight className="h-3 w-3" />
-            </Link>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <Link
+                to="/customers"
+                className="text-[10px] text-primary hover:underline font-bold flex items-center gap-0.5"
+              >
+                <span>إدارة حسابات الديون</span>
+                <ArrowUpRight className="h-3 w-3" />
+              </Link>
+              {currentCredit > 0 && (
+                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">
+                  (آجل الفترة: {currentCredit.toLocaleString('ar-EG', { maximumFractionDigits: 0 })} ج.م)
+                </span>
+              )}
+            </div>
           </div>
           <div className="h-9 w-9 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
             <Users className="h-5 w-5" />

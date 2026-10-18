@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button'
 import type { CustomerSummary } from '../types/customer.types'
 import type { SaleWithDetails } from '@/features/pos/types/pos.types'
-import { FileText, Printer, Clock, CreditCard, Banknote } from 'lucide-react'
+import { computeSaleFinancials } from '@/features/sales/utils/salesCalculations'
+import { FileText, Printer, Clock, CreditCard, Banknote, RotateCcw } from 'lucide-react'
 import { formatCurrency } from '@/lib/formatters'
 
 interface CustomerInvoicesModalProps {
@@ -69,16 +70,22 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                 {customer.sales.map((sale) => {
                   const saleDate = new Date(sale.created_at)
                   const isCredit = sale.payment_method === 'credit'
-                  const paid = Number(sale.amount_paid ?? sale.total_amount)
-                  const remain = Number(sale.remaining_amount || 0)
+                  const fin = computeSaleFinancials(sale)
                   const itemsCount = sale.sale_items?.length || 0
 
                   return (
-                    <tr key={sale.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="py-3 px-3 font-mono font-bold text-foreground">
+                    <tr
+                      key={sale.id}
+                      className={`transition-colors ${
+                        fin.isFullyReturned
+                          ? 'bg-rose-500/[0.04] hover:bg-rose-500/[0.08]'
+                          : 'hover:bg-muted/20'
+                      }`}
+                    >
+                      <td className="py-2.5 px-3 font-mono font-bold text-foreground whitespace-nowrap align-middle">
                         {sale.invoice_number}
                       </td>
-                      <td className="py-3 px-3 text-muted-foreground text-[11px]">
+                      <td className="py-2.5 px-3 text-muted-foreground text-[11px] whitespace-nowrap align-middle">
                         {saleDate.toLocaleDateString('ar-EG', {
                           year: 'numeric',
                           month: 'short',
@@ -91,7 +98,7 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                           hour12: true,
                         })}
                       </td>
-                      <td className="py-3 px-3">
+                      <td className="py-2.5 px-3 whitespace-nowrap align-middle">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[10px] ${
                             isCredit
@@ -119,25 +126,48 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                           )}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center font-mono font-bold">
+                      <td className="py-2.5 px-3 text-center font-mono font-bold whitespace-nowrap align-middle">
                         {itemsCount}
                       </td>
-                      <td className="py-3 px-3 font-mono font-black text-foreground">
-                        {formatCurrency(sale.total_amount)}
+                      <td className="py-2.5 px-3 font-mono font-black text-foreground whitespace-nowrap align-middle">
+                        {fin.isFullyReturned ? (
+                          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="font-mono font-bold text-xs text-foreground">
+                              {formatCurrency(fin.grossTotal)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
+                              <RotateCcw className="h-2.5 w-2.5" />
+                              مرتجع
+                            </span>
+                          </div>
+                        ) : fin.returnAmount > 0 ? (
+                          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="font-mono font-black text-xs text-foreground">
+                              {formatCurrency(fin.netTotal)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                              مرتجع جزئي
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-mono font-black text-xs text-foreground whitespace-nowrap">
+                            {formatCurrency(fin.netTotal)}
+                          </span>
+                        )}
                       </td>
-                      <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {formatCurrency(paid)}
+                      <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap align-middle">
+                        {formatCurrency(fin.netPaid)}
                       </td>
-                      <td className="py-3 px-3 font-mono">
-                        {remain > 0 ? (
+                      <td className="py-2.5 px-3 font-mono whitespace-nowrap align-middle">
+                        {fin.netRemaining > 0 ? (
                           <span className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                            {formatCurrency(remain)}
+                            {formatCurrency(fin.netRemaining)}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">٠٫٠٠ ج.م</span>
                         )}
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap align-middle">
                         <Button
                           variant="ghost"
                           size="sm"

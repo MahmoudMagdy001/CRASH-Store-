@@ -4,6 +4,10 @@ import { getSalesList, getStoreSettings } from '@/features/pos/api/posApi'
 import type { SaleWithDetails } from '@/features/pos/types/pos.types'
 import { ReceiptModal } from '@/features/pos/components/ReceiptModal'
 import { ReturnModal } from '@/features/returns/components/ReturnModal'
+import {
+  computeSaleFinancials,
+  aggregateSalesStats,
+} from '../utils/salesCalculations'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,6 +26,7 @@ import {
   Users,
   Eye,
   Undo2,
+  RotateCcw,
 } from 'lucide-react'
 
 type DatePeriod = 'today' | 'month' | 'year' | 'all' | 'custom'
@@ -133,33 +138,8 @@ export const SalesPage: React.FC = () => {
     }
   }, [datePeriod, customStartDate, customEndDate])
 
-  // KPI Calculations based on periodSales
-  const stats = useMemo(() => {
-    let totalRevenue = 0
-    let totalPaid = 0
-    let totalCreditRemaining = 0
-    let totalDiscounts = 0
-
-    periodSales.forEach((s) => {
-      const amount = Number(s.total_amount || 0)
-      const paid = Number(s.amount_paid ?? s.total_amount)
-      const remaining = Number(s.remaining_amount || 0)
-      const discount = Number(s.discount || 0)
-
-      totalRevenue += amount
-      totalPaid += paid
-      totalCreditRemaining += remaining
-      totalDiscounts += discount
-    })
-
-    return {
-      totalCount: periodSales.length,
-      totalRevenue,
-      totalPaid,
-      totalCreditRemaining,
-      totalDiscounts,
-    }
-  }, [periodSales])
+  // KPI Calculations based on periodSales (accurately accounts for returns and credit)
+  const stats = useMemo(() => aggregateSalesStats(periodSales), [periodSales])
 
   // Filtered sales list for the table (date + search + method)
   const filteredSales = useMemo(() => {
@@ -341,7 +321,7 @@ export const SalesPage: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-xs font-bold text-muted-foreground">
-                إجمالي المبيعات
+                إجمالي المبيعات (الصافي)
               </CardTitle>
               <span className="text-[10px] text-primary font-bold">
                 ({periodLabel})
@@ -353,11 +333,21 @@ export const SalesPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-black font-mono text-primary">
-              {stats.totalRevenue.toLocaleString('ar-EG', {
+              {stats.totalNetSales.toLocaleString('ar-EG', {
                 minimumFractionDigits: 2,
               })}{' '}
               <span className="text-xs font-bold text-muted-foreground">ج.م</span>
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1 truncate font-medium">
+              {stats.totalReturns > 0 ? (
+                <span>
+                  أصل: {stats.totalGrossSales.toLocaleString('ar-EG', { minimumFractionDigits: 1 })} ج.م
+                  {' '}(مرتجع: -{stats.totalReturns.toLocaleString('ar-EG', { minimumFractionDigits: 1 })})
+                </span>
+              ) : (
+                <span>صافي قيمة الفواتير المصدرة</span>
+              )}
+            </p>
           </CardContent>
         </Card>
 
@@ -365,7 +355,7 @@ export const SalesPage: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-xs font-bold text-muted-foreground">
-                المدفوع نقداً / المحصل
+                المدفوع نقداً / المحصل الفعلي
               </CardTitle>
               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
                 ({periodLabel})
@@ -382,6 +372,9 @@ export const SalesPage: React.FC = () => {
               })}{' '}
               <span className="text-xs font-bold text-muted-foreground">ج.م</span>
             </div>
+            <p className="text-[10px] text-emerald-600/90 dark:text-emerald-400/90 mt-1 font-medium">
+              المبالغ المستلمة بالدرج بعد خصم المرتجعات
+            </p>
           </CardContent>
         </Card>
 
@@ -406,6 +399,38 @@ export const SalesPage: React.FC = () => {
               })}{' '}
               <span className="text-xs font-bold text-muted-foreground">ج.م</span>
             </div>
+            <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80 mt-1 font-medium">
+              صافي الديون المستحقة على العملاء
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border shadow-xs border-rose-500/20 bg-rose-500/5">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-xs font-bold text-rose-700 dark:text-rose-400">
+                إجمالي المرتجعات
+              </CardTitle>
+              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">
+                ({periodLabel})
+              </span>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-600 flex items-center justify-center">
+              <Undo2 className="h-4 w-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400">
+              {stats.totalReturns.toLocaleString('ar-EG', {
+                minimumFractionDigits: 2,
+              })}{' '}
+              <span className="text-xs font-bold text-muted-foreground">ج.م</span>
+            </div>
+            <p className="text-[10px] text-rose-600/80 dark:text-rose-400/80 mt-1 font-medium">
+              {stats.returnedCount > 0
+                ? `${stats.returnedCount} فاتورة مسترجعة بالكامل`
+                : 'تم خصمها من الإيراد والدين'}
+            </p>
           </CardContent>
         </Card>
 
@@ -413,7 +438,7 @@ export const SalesPage: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-xs font-bold text-muted-foreground">
-                عدد الفواتير الصادرة
+                الفواتير والخصومات
               </CardTitle>
               <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
                 ({periodLabel})
@@ -425,33 +450,15 @@ export const SalesPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-black font-mono text-foreground">
-              {stats.totalCount}{' '}
-              <span className="text-xs font-bold text-muted-foreground">فاتورة</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border-border shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-xs font-bold text-muted-foreground">
-                إجمالي الخصومات
-              </CardTitle>
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
-                ({periodLabel})
+              {stats.activeCount}{' '}
+              <span className="text-xs font-bold text-muted-foreground">
+                نشطة {stats.returnedCount > 0 ? `(${stats.returnedCount} مسترجعة)` : ''}
               </span>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-              <Tag className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-black font-mono text-amber-600 dark:text-amber-400">
-              {stats.totalDiscounts.toLocaleString('ar-EG', {
-                minimumFractionDigits: 2,
-              })}{' '}
-              <span className="text-xs font-bold text-muted-foreground">ج.م</span>
-            </div>
+            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1 font-medium">
+              <Tag className="h-3 w-3 text-amber-500" />
+              <span>إجمالي: {stats.totalCount} فاتورة | خصومات: {stats.totalDiscounts.toLocaleString('ar-EG', { minimumFractionDigits: 1 })} ج.م</span>
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -526,25 +533,25 @@ export const SalesPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-muted/40 border-b border-border text-muted-foreground font-semibold">
               <tr>
-                <th className="py-3 px-3">رقم الفاتورة</th>
-                <th className="py-3 px-3">التاريخ والوقت</th>
-                <th className="py-3 px-3">العميل</th>
-                <th className="py-3 px-3">الكاشير</th>
-                <th className="py-3 px-3">طريقة الدفع</th>
-                <th className="py-3 px-3 text-center">الأصناف</th>
-                <th className="py-3 px-3">الخصم</th>
-                <th className="py-3 px-3">الإجمالي</th>
-                <th className="py-3 px-3 text-emerald-600 dark:text-emerald-400 font-bold">المدفوع</th>
-                <th className="py-3 px-3 text-amber-600 dark:text-amber-400 font-bold">المتبقي (دين)</th>
-                <th className="py-3 px-3 text-center">معاينة</th>
-                <th className="py-3 px-3 text-center text-rose-600 dark:text-rose-400 font-bold">استرجاع</th>
+                <th className="py-2.5 px-2 whitespace-nowrap">رقم الفاتورة</th>
+                <th className="py-2.5 px-2 whitespace-nowrap">التاريخ</th>
+                <th className="py-2.5 px-2 whitespace-nowrap">العميل</th>
+                <th className="py-2.5 px-2 whitespace-nowrap">الكاشير</th>
+                <th className="py-2.5 px-1.5 whitespace-nowrap">الدفع</th>
+                <th className="py-2.5 px-1 text-center whitespace-nowrap">الأصناف</th>
+                <th className="py-2.5 px-1.5 whitespace-nowrap">الخصم</th>
+                <th className="py-2.5 px-2 whitespace-nowrap">الإجمالي</th>
+                <th className="py-2.5 px-2 text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">المدفوع</th>
+                <th className="py-2.5 px-2 text-amber-600 dark:text-amber-400 font-bold whitespace-nowrap">المتبقي</th>
+                <th className="py-2.5 px-1 text-center whitespace-nowrap">معاينة</th>
+                <th className="py-2.5 px-1 text-center text-rose-600 dark:text-rose-400 font-bold whitespace-nowrap">استرجاع</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={12} className="py-4 px-3">
+                    <td colSpan={12} className="py-4 px-2">
                       <div className="h-5 bg-muted rounded w-full" />
                     </td>
                   </tr>
@@ -569,22 +576,22 @@ export const SalesPage: React.FC = () => {
                     ) || 0
 
                   const isCredit = sale.payment_method === 'credit'
-                  const paidAmount = Number(sale.amount_paid ?? sale.total_amount)
-                  const remainAmount = Number(sale.remaining_amount || 0)
+                  const fin = computeSaleFinancials(sale)
 
                   return (
                     <tr
                       key={sale.id}
                       onClick={() => handleOpenReceipt(sale)}
-                      className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                      className={`hover:bg-muted/30 transition-colors cursor-pointer group ${
+                        fin.isFullyReturned ? 'bg-rose-500/[0.04] hover:bg-rose-500/[0.08]' : ''
+                      }`}
                       title="انقر لمعاينة أو طباعة الفاتورة"
                     >
-                      <td className="py-3 px-3 font-mono font-bold text-foreground">
+                      <td className="py-2.5 px-2 font-mono font-bold text-foreground whitespace-nowrap align-middle">
                         {sale.invoice_number}
                       </td>
-                      <td className="py-3 px-3 text-muted-foreground text-[11px]">
+                      <td className="py-2.5 px-2 text-muted-foreground text-[11px] whitespace-nowrap align-middle">
                         {saleDate.toLocaleDateString('ar-EG', {
-                          year: 'numeric',
                           month: 'short',
                           day: 'numeric',
                         })}{' '}
@@ -595,21 +602,24 @@ export const SalesPage: React.FC = () => {
                           hour12: true,
                         })}
                       </td>
-                      <td className="py-3 px-3 font-medium text-foreground">
+                      <td className="py-2.5 px-2 font-medium text-foreground whitespace-nowrap align-middle">
                         {sale.customer_name ? (
-                          <span className="font-bold text-foreground bg-muted/60 px-2 py-0.5 rounded-md border border-border/60">
+                          <span
+                            className="font-bold text-foreground bg-muted/60 px-1.5 py-0.5 rounded text-[11px] truncate max-w-[110px] inline-block align-middle"
+                            title={sale.customer_name}
+                          >
                             {sale.customer_name}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-3 font-medium text-foreground">
+                      <td className="py-2.5 px-2 font-medium text-foreground whitespace-nowrap align-middle">
                         {sale.cashier?.full_name || 'مدير النظام'}
                       </td>
-                      <td className="py-3 px-3">
+                      <td className="py-2.5 px-1.5 whitespace-nowrap align-middle">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[11px] ${
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md font-bold text-[10px] ${
                             isCredit
                               ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                               : sale.payment_method === 'card'
@@ -619,53 +629,84 @@ export const SalesPage: React.FC = () => {
                         >
                           {isCredit ? (
                             <>
-                              <Clock className="h-3 w-3" />
+                              <Clock className="h-2.5 w-2.5" />
                               بالأجل
                             </>
                           ) : sale.payment_method === 'card' ? (
                             <>
-                              <CreditCard className="h-3 w-3" />
+                              <CreditCard className="h-2.5 w-2.5" />
                               بطاقة
                             </>
                           ) : (
                             <>
-                              <Banknote className="h-3 w-3" />
+                              <Banknote className="h-2.5 w-2.5" />
                               نقداً
                             </>
                           )}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center font-mono">
+                      <td className="py-2.5 px-1 text-center font-mono whitespace-nowrap align-middle">
                         <span className="font-bold">{itemsCount}</span>{' '}
                         <span className="text-[10px] text-muted-foreground">
-                          ({totalUnits} ق)
+                          ({totalUnits}ق)
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono">
+                      <td className="py-2.5 px-1.5 font-mono whitespace-nowrap align-middle">
                         {Number(sale.discount) > 0 ? (
                           <span className="text-amber-600 dark:text-amber-400 font-bold">
-                            -{Number(sale.discount).toLocaleString('ar-EG', { minimumFractionDigits: 2 })}
+                            -{Number(sale.discount).toLocaleString('ar-EG', { minimumFractionDigits: 1 })}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-3 font-mono font-black text-xs text-foreground">
-                        {Number(sale.total_amount).toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                      <td className="py-2.5 px-2 font-mono whitespace-nowrap align-middle">
+                        {fin.isFullyReturned ? (
+                          <div className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <span className="font-bold text-xs text-foreground">
+                              {fin.grossTotal.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                            </span>
+                            <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
+                              <RotateCcw className="h-2.5 w-2.5" />
+                              مرتجع
+                            </span>
+                          </div>
+                        ) : fin.returnAmount > 0 ? (
+                          <div className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <span className="font-black text-xs text-foreground">
+                              {fin.netTotal.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                            </span>
+                            <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                              جزئي
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-black text-xs text-foreground whitespace-nowrap">
+                            {fin.netTotal.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                          </span>
+                        )}
                       </td>
-                      <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {paidAmount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                      <td className="py-2.5 px-2 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap align-middle">
+                        {fin.isFullyReturned ? (
+                          <span className="text-muted-foreground text-xs font-normal">
+                            ٠٫٠٠ ج.م
+                          </span>
+                        ) : (
+                          <span>
+                            {fin.netPaid.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                          </span>
+                        )}
                       </td>
-                      <td className="py-3 px-3 font-mono">
-                        {remainAmount > 0 ? (
-                          <span className="font-black text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/40 inline-block">
-                            {remainAmount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
+                      <td className="py-2.5 px-2 font-mono whitespace-nowrap align-middle">
+                        {fin.netRemaining > 0 ? (
+                          <span className="font-black text-amber-700 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-md border border-amber-500/40 inline-block whitespace-nowrap text-[11px]">
+                            {fin.netRemaining.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ج.م
                           </span>
                         ) : (
                           <span className="text-muted-foreground">٠٫٠٠</span>
                         )}
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-2.5 px-1 text-center whitespace-nowrap align-middle">
                         <Button
                           variant="outline"
                           size="sm"
@@ -673,16 +714,16 @@ export const SalesPage: React.FC = () => {
                             e.stopPropagation()
                             handleOpenReceipt(sale)
                           }}
-                          className="h-8 gap-1.5 text-xs text-primary font-bold hover:bg-primary/10 px-2.5 rounded-lg border-primary/30 shadow-2xs"
+                          className="h-7 gap-1 text-[11px] text-primary font-bold hover:bg-primary/10 px-2 rounded-lg border-primary/30"
                         >
-                          <Eye className="h-3.5 w-3.5" />
+                          <Eye className="h-3 w-3" />
                           <span>معاينة</span>
                         </Button>
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-2.5 px-1 text-center whitespace-nowrap align-middle">
                         {sale.is_fully_returned ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-muted-foreground text-[11px] font-bold">
-                            <Undo2 className="h-3 w-3" />
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-1 rounded bg-muted text-muted-foreground text-[10px] font-bold">
+                            <Undo2 className="h-2.5 w-2.5" />
                             مسترجع
                           </span>
                         ) : (
@@ -693,9 +734,9 @@ export const SalesPage: React.FC = () => {
                               e.stopPropagation()
                               handleOpenReturn(sale)
                             }}
-                            className="h-8 gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 px-2.5 rounded-lg border-rose-500/30 shadow-2xs"
+                            className="h-7 gap-1 text-[11px] text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 px-2 rounded-lg border-rose-500/30"
                           >
-                            <Undo2 className="h-3.5 w-3.5" />
+                            <Undo2 className="h-3 w-3" />
                             <span>استرجاع</span>
                           </Button>
                         )}

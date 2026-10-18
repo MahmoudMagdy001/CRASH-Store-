@@ -2,20 +2,33 @@ import { supabase } from '@/lib/supabaseClient'
 
 export interface FinancialReportSummary {
   total_sales: number
+  gross_sales: number
+  total_returns: number
+  executed_returns?: number
+  returns_count?: number
   total_paid: number
   total_remaining: number
   total_discounts: number
   invoices_count: number
+  active_invoices_count: number
+  returned_invoices_count: number
   cogs: number
+  gross_cogs?: number
+  returned_cogs?: number
   expenses: number
   purchases: number
   gross_profit: number
   net_profit: number
+  profit_margin?: number
 }
 
 export interface PaymentMethodBreakdown {
   payment_method: string
   count: number
+  active_count?: number
+  returned_count?: number
+  gross_total?: number
+  returns_total?: number
   total: number
   paid: number
   remaining: number
@@ -26,6 +39,10 @@ export interface CashierPerformance {
   cashier_name: string
   role: string
   invoices_count: number
+  active_invoices_count?: number
+  returned_invoices_count?: number
+  gross_sales?: number
+  returns_amount?: number
   total_sales: number
   total_paid: number
   total_remaining: number
@@ -35,15 +52,23 @@ export interface CashierPerformance {
 export interface CategoryBreakdown {
   category_name: string
   total_units: number
+  sold_qty?: number
+  returned_units?: number
   total_revenue: number
+  total_cogs?: number
   total_profit: number
 }
 
 export interface DailyTimelineItem {
   day: string
   invoices: number
+  active_invoices?: number
+  returned_invoices?: number
+  gross_sales?: number
+  returns_amount?: number
   sales_amount: number
   paid_amount: number
+  remaining_amount?: number
 }
 
 export interface FinancialReportResponse {
